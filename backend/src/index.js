@@ -177,6 +177,131 @@ app.get("/customers/:id/addresses", async (req, res) => {
   }
 });
 
+// Validate cart and calculate totals
+app.post("/cart/validate", async (req, res) => {
+  try {
+    const { items } = req.body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "items is required" });
+    }
+
+    // Example: You will replace this with real product lookup
+    const validatedItems = items.map((item) => ({
+      ...item,
+      price: 1000, // $10.00 example
+      subtotal: item.quantity * 1000,
+    }));
+
+    const subtotal = validatedItems.reduce((sum, i) => sum + i.subtotal, 0);
+    const tax = Math.round(subtotal * 0.08);
+    const shipping = 500; // $5.00 example
+    const total = subtotal + tax + shipping;
+
+    res.json({
+      items: validatedItems,
+      subtotal,
+      tax,
+      shipping,
+      total,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message || "Failed to validate cart" });
+  }
+});
+
+// Create checkout session (cart + customer + payment intent)
+app.post("/checkout", async (req, res) => {
+  try {
+    const { items, customer } = req.body;
+
+    if (!items || !customer) {
+      return res.status(400).json({ error: "items and customer are required" });
+    }
+
+    // Calculate totals (reuse logic or call /cart/validate internally)
+    const subtotal = items.reduce((sum, i) => sum + i.quantity * 1000, 0);
+    const tax = Math.round(subtotal * 0.08);
+    const shipping = 500;
+    const total = subtotal + tax + shipping;
+
+    // Create Stripe PaymentIntent
+    const intent = await stripe.paymentIntents.create({
+      amount: total,
+      currency: "usd",
+      receipt_email: customer.email,
+      automatic_payment_methods: { enabled: true },
+      metadata: {
+        customerName: customer.name,
+      },
+    });
+
+    res.json({
+      checkoutId: intent.id,
+      clientSecret: intent.client_secret,
+      total,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message || "Failed to create checkout" });
+  }
+});
+
+// Confirm checkout and create Shopify order
+app.post("/checkout/confirm", async (req, res) => {
+  try {
+    const { paymentIntentId, lineItems, customerEmail, shippingAddress, totalAmount } = req.body;
+
+    if (!paymentIntentId) {
+      return res.status(400).json({ error: "paymentIntentId is required" });
+    }
+
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (intent.status !== "succeeded") {
+      return res.status(400).json({ error: "Payment not completed" });
+    }
+
+    // Create Shopify order
+    const response = await fetch(
+      `https://${process.env.SHOPIFY_DOMAIN}/admin/api/2024-10/orders.json`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Access-Token": process.env.SHOPIFY_ADMIN_TOKEN || "",
+        },
+        body: JSON.stringify({
+          order: {
+            email: customerEmail,
+            line_items: lineItems,
+            shipping_address: shippingAddress,
+            financial_status: "paid",
+            transactions: [
+              {
+                kind: "sale",
+                status: "success",
+                gateway: "stripe",
+                amount: String(totalAmount),
+                authorization: paymentIntentId,
+              },
+            ],
+          },
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    res.json({
+      orderId: data.order.id,
+      orderNumber: data.order.order_number,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message || "Failed to confirm checkout" });
+  }
+});
+
+
 app.listen(port, () => {
   console.log(`Backend listening on port ${port}`);
 });
