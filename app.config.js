@@ -1,9 +1,21 @@
 module.exports = {
   name: "BeaTrackFam: Loyalty Above All",
   slug: "beatrackfaminc",
-  version: undefined,
+  version: "1.1.10",
   scheme: "beatrackfaminc",
-  web: { bundler: "metro", output: "single", favicon: "./assets/images/favicon.png" },
+  web: {
+    bundler: "metro",
+    output: "single",
+    favicon: "./assets/images/favicon.png",
+    themeColor: undefined,
+    name: undefined,
+    shortName: undefined,
+    lang: undefined,
+    backgroundColor: undefined,
+    description: undefined,
+    orientation: undefined,
+    startUrl: undefined,
+  },
   plugins: [
     "expo-font",
     "expo-asset",
@@ -20,6 +32,10 @@ module.exports = {
 
     "expo-notifications",
     "expo-location",
+    [
+      "@stripe/stripe-react-native",
+      { merchantIdentifier: "merchant.com.beatrackfaminc", enableGooglePay: true },
+    ],
 
     [
       "expo-router",
@@ -28,6 +44,7 @@ module.exports = {
         headOrigin: "https://5b024a24a2.sandbox.draftbit.dev:5100",
       },
     ],
+
     ["./plugins/draftbit-auto-launch-url-plugin"],
   ],
 
@@ -46,30 +63,49 @@ module.exports = {
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
-    buildNumber: "9",
+    buildNumber: "10",
     bundleIdentifier: "com.beatrackfaminc",
     usesAppleSignIn: true,
     requireFullScreen: true,
     infoPlist: {
       NSPhotoLibraryUsageDescription:
         "This app needs access to your photo library to upload a profile picture for your account.",
+
       NSLocationWhenInUseUsageDescription:
         "BeaTrackFam uses your location to provide accurate shipping estimates and help you find local events and pop-up shops.",
+
       NSLocationAlwaysUsageDescription:
         "BeaTrackFam uses your location to provide accurate shipping estimates and help you find local events and pop-up shops.",
+
       NSUserTrackingUsageDescription:
         "BeaTrackFam uses tracking to personalize your shopping experience and provide you with relevant product recommendations and exclusive offers.",
+
       NSCameraUsageDescription: "BeaTrackFam needs camera access to take photos for your profile.",
       LSApplicationQueriesSchemes: ["mailto"],
+      NSMicrophoneUsageDescription: undefined,
+      NSPhotoLibraryAddUsageDescription: undefined,
+      NSContactsUsageDescription: undefined,
+      NSCalendarsUsageDescription: undefined,
+      NSRemindersUsageDescription: undefined,
+      NSMotionUsageDescription: undefined,
+      NSFaceIDUsageDescription: undefined,
+      NSSpeechRecognitionUsageDescription: undefined,
+      NSBluetoothPeripheralUsageDescription: undefined,
+      NSAppleMusicUsageDescription: undefined,
     },
+    associatedDomains: undefined,
+    appStoreUrl: undefined,
+    isTabletOnly: undefined,
+    privacyManifests: undefined,
+    bitcode: undefined,
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: "./assets/images/adaptive-icon.png",
+      foregroundImage: "./assets/appicon.png",
       backgroundColor: "#ffffff",
     },
     package: "com.beatrackfaminc",
-    versionCode: 9,
+    versionCode: 10,
     permissions: [
       "INTERNET",
       "ACCESS_NETWORK_STATE",
@@ -81,11 +117,19 @@ module.exports = {
       "POST_NOTIFICATIONS",
       "com.google.android.gms.permission.AD_ID",
     ],
+
+    allowBackup: true,
+    blockedPermissions: undefined,
   },
   platforms: ["ios", "android", "web"],
   notification: {
     iosDisplayInForeground: true,
     androidMode: "default",
     icon: "./assets/appicon.png",
+    color: undefined,
+    androidCollapsedTitle: undefined,
   },
+  description: undefined,
+  locales: undefined,
+  jsEngine: undefined,
 };

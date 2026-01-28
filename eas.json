@@ -13,7 +13,8 @@
         "withoutCredentials": true
       },
       "ios": {
-        "buildConfiguration": "Debug"
+        "buildConfiguration": "Debug",
+        "credentialsSource": "remote"
       }
     },
     "preview": {
@@ -21,6 +22,9 @@
       "android": {
         "buildType": "apk",
         "withoutCredentials": true
+      },
+      "ios": {
+        "credentialsSource": "remote"
       }
     },
     "production": {
@@ -29,7 +33,8 @@
         "credentialsSource": "remote"
       },
       "ios": {
-        "buildConfiguration": "Release"
+        "buildConfiguration": "Release",
+        "credentialsSource": "remote"
       }
     }
   },
