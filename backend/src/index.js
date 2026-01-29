@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const Stripe = require("stripe");
+const fetch = require("node-fetch");
 
 dotenv.config();
 
