@@ -1,7 +1,7 @@
 module.exports = {
   name: "BeaTrackFam: Loyalty Above All",
   slug: "beatrackfaminc",
-  version: "1.2.1",
+  version: "1.2.2",
   owner: "joeey16",
   scheme: "beatrackfaminc",
   web: {
