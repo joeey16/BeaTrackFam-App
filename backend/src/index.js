@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const stripe = require("stripe");
 const dotenv = require("dotenv");
+const Stripe = require("stripe");
 
 dotenv.config();
 
@@ -21,6 +21,7 @@ if (!process.env.SHOPIFY_DOMAIN || !process.env.SHOPIFY_ADMIN_TOKEN) {
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2024-06-20",
 });
+
 
 function normalizeVariantId(rawId) {
   if (!rawId) return null;
