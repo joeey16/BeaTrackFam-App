@@ -4,32 +4,119 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "~/components/ui/text";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Switch } from "~/components/ui/switch";
 import { useCartContext } from "~/lib/contexts/CartContext";
 import { useCart } from "~/lib/shopify/hooks";
-import { useTheme } from "~/theming/ThemeProvider";
 import { router } from "expo-router";
 import LucideIcon from "~/lib/icons/LucideIcon";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useStripe, usePlatformPay, PlatformPayButton, PlatformPay } from "~/lib/stripe";
+import * as WebBrowser from "expo-web-browser";
+import { useAuth } from "~/lib/contexts/AuthContext";
+import { useCustomer } from "~/lib/shopify/hooks";
+
+type ShippingOption = {
+  id: string;
+  label: string;
+  amount: number;
+};
+
+type DiscountCode = {
+  code: string;
+  valueType: "percentage" | "fixed_amount";
+  value: number;
+};
 function formatPrice(amount: string, currencyCode: string) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currencyCode,
   }).format(parseFloat(amount));
 }
+
+type ContactForm = {
+  email: string;
+  phone: string;
+  firstName: string;
+  lastName: string;
+};
+
+type AddressForm = {
+  address1: string;
+  address2: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+};
 export default function CheckoutScreen() {
-  const { theme } = useTheme();
+  const primaryColor = "#4F46E5";
+  const primaryForeground = "#FFFFFF";
+  const shippingOptions: ShippingOption[] = [
+    { id: "standard", label: "Standard", amount: 5.99 },
+    { id: "expedited", label: "Expedited", amount: 10.99 },
+    { id: "premium", label: "Premium", amount: 20.99 },
+  ];
   const { cartId, clearCart } = useCartContext();
   const { data: cart, isLoading } = useCart(cartId);
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const { isPlatformPaySupported, confirmPlatformPayPayment } = usePlatformPay();
+  const { accessToken } = useAuth();
+  const { data: customer } = useCustomer(accessToken);
   const [promoCode, setPromoCode] = React.useState("");
+  const [availableDiscounts, setAvailableDiscounts] = React.useState<DiscountCode[]>([]);
+  const [appliedDiscount, setAppliedDiscount] = React.useState<DiscountCode | null>(null);
   const [backendHealthy, setBackendHealthy] = React.useState<boolean | null>(null);
   const [isProcessingCard, setIsProcessingCard] = React.useState(false);
   const [isProcessingWallet, setIsProcessingWallet] = React.useState(false);
   const [isPlatformPayReady, setIsPlatformPayReady] = React.useState(false);
+  const [useSavedPaymentMethods, setUseSavedPaymentMethods] = React.useState(true);
+  const [contact, setContact] = React.useState<ContactForm>({
+    email: "",
+    phone: "",
+    firstName: "",
+    lastName: "",
+  });
+  const [shipping, setShipping] = React.useState<AddressForm>({
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "US",
+  });
+  const [billingSameAsShipping, setBillingSameAsShipping] = React.useState(true);
+  const [billing, setBilling] = React.useState<AddressForm>({
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "US",
+  });
+  const [selectedShippingId, setSelectedShippingId] = React.useState("standard");
   const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
   const merchantCountryCode = "US";
+  React.useEffect(() => {
+    if (!customer) return;
+    setContact((prev) => ({
+      email: prev.email || customer.email || "",
+      phone: prev.phone || customer.phone || "",
+      firstName: prev.firstName || customer.firstName || "",
+      lastName: prev.lastName || customer.lastName || "",
+    }));
+    if (customer.defaultAddress && !shipping.address1) {
+      setShipping((prev) => ({
+        ...prev,
+        address1: customer.defaultAddress?.address1 || prev.address1,
+        address2: customer.defaultAddress?.address2 || prev.address2,
+        city: customer.defaultAddress?.city || prev.city,
+        state: customer.defaultAddress?.province || prev.state,
+        postalCode: customer.defaultAddress?.zip || prev.postalCode,
+        country: customer.defaultAddress?.countryCodeV2 || prev.country,
+      }));
+    }
+  }, [customer, shipping.address1]);
   React.useEffect(() => {
     if (!backendUrl) {
       setBackendHealthy(false);
@@ -49,6 +136,37 @@ export default function CheckoutScreen() {
       }
     };
     checkHealth();
+    return () => {
+      isActive = false;
+    };
+  }, [backendUrl]);
+
+  React.useEffect(() => {
+    if (!backendUrl) return;
+    let isActive = true;
+    const loadDiscountCodes = async () => {
+      try {
+        const response = await fetch(`${backendUrl}/shopify/discount-codes`);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          return;
+        }
+        if (isActive && Array.isArray(data.codes)) {
+          setAvailableDiscounts(
+            data.codes
+              .filter((code) => code.code)
+              .map((code) => ({
+                code: String(code.code).toUpperCase(),
+                valueType: code.valueType,
+                value: Number(code.value),
+              })),
+          );
+        }
+      } catch (error) {
+        // ignore for now
+      }
+    };
+    loadDiscountCodes();
     return () => {
       isActive = false;
     };
@@ -77,37 +195,108 @@ export default function CheckoutScreen() {
       isActive = false;
     };
   }, [isPlatformPaySupported]);
+  React.useEffect(() => {
+    if (billingSameAsShipping) {
+      setBilling(shipping);
+    }
+  }, [billingSameAsShipping, shipping]);
   const buildLineItems = React.useCallback(() => {
     if (!cart) return [];
     return cart.lines.edges
       .map((edge) => ({
-        merchandiseId: edge.node.merchandise.id,
+        variantId: edge.node.merchandise.id,
         quantity: edge.node.quantity,
       }))
-      .filter((item) => Boolean(item.merchandiseId));
+      .filter((item) => Boolean(item.variantId));
   }, [cart]);
+  const selectedShipping = shippingOptions.find((option) => option.id === selectedShippingId);
+  const shippingAmount = selectedShipping?.amount ?? 0;
+  const subtotalAmount = Number.parseFloat(cart?.cost.subtotalAmount.amount || "0");
+  const taxAmount = Number.parseFloat(cart?.cost.totalTaxAmount?.amount || "0");
+  const totalBeforeDiscount = subtotalAmount + taxAmount + shippingAmount;
+  const rawDiscountAmount =
+    appliedDiscount?.valueType === "percentage"
+      ? Number((subtotalAmount * (appliedDiscount.value / 100)).toFixed(2))
+      : appliedDiscount?.value
+        ? Number(appliedDiscount.value.toFixed(2))
+        : 0;
+  const discountAmount = Math.min(rawDiscountAmount, totalBeforeDiscount);
+  const totalAfterDiscount = Math.max(totalBeforeDiscount - discountAmount, 0);
   const extractPaymentIntentId = (clientSecret: string) => {
     const [paymentIntentId] = clientSecret.split("_secret_");
     return paymentIntentId;
   };
-  const createPaymentIntent = async () => {
+  const validateCheckoutForm = () => {
+    const requiredContact =
+      contact.email.trim() &&
+      contact.phone.trim() &&
+      contact.firstName.trim() &&
+      contact.lastName.trim();
+    const requiredShipping =
+      shipping.address1.trim() &&
+      shipping.city.trim() &&
+      shipping.state.trim() &&
+      shipping.postalCode.trim() &&
+      shipping.country.trim();
+    const requiredBilling =
+      billingSameAsShipping ||
+      (billing.address1.trim() &&
+        billing.city.trim() &&
+        billing.state.trim() &&
+        billing.postalCode.trim() &&
+        billing.country.trim());
+
+    if (!requiredContact) {
+      Alert.alert("Missing info", "Please complete all contact fields.");
+      return false;
+    }
+    if (!requiredShipping) {
+      Alert.alert("Missing info", "Please complete all required shipping fields.");
+      return false;
+    }
+    if (!requiredBilling) {
+      Alert.alert("Missing info", "Please complete all required billing fields.");
+      return false;
+    }
+    return true;
+  };
+  const applyPromoCode = () => {
+    const normalized = promoCode.trim().toUpperCase();
+    if (!normalized) return;
+    const match = availableDiscounts.find((code) => code.code === normalized);
+    if (!match) {
+      Alert.alert("Invalid code", "That discount code is not available.");
+      return;
+    }
+    setAppliedDiscount(match);
+    Alert.alert("Discount applied", `${match.code} has been applied to your order.`);
+  };
+  const createPaymentIntent = async (withCustomer: boolean) => {
     if (!backendUrl) {
       throw new Error("Missing backend URL. Please set EXPO_PUBLIC_BACKEND_URL.");
     }
     if (!cart) {
       throw new Error("Cart not available.");
     }
-    const totalAmount = Number.parseFloat(cart.cost.totalAmount.amount);
-    const amountInCents = Math.round(totalAmount * 100);
-    const paymentResponse = await fetch(`${backendUrl}/payments/create-intent`, {
+    const amountInCents = Math.round(totalAfterDiscount * 100);
+    const endpoint = withCustomer ? "/payments/init-payment-sheet" : "/payments/create-intent";
+    const paymentResponse = await fetch(`${backendUrl}${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         amount: amountInCents,
         currency: cart.cost.totalAmount.currencyCode?.toLowerCase() || "usd",
-        customerEmail: cart.buyerIdentity?.email || undefined,
+        customerEmail: contact.email || undefined,
         metadata: {
           cartId,
+          customerName: `${contact.firstName} ${contact.lastName}`.trim(),
+          customerPhone: contact.phone,
+          shippingAddress: JSON.stringify(shipping),
+          billingAddress: JSON.stringify(billingSameAsShipping ? shipping : billing),
+          shippingMethod: selectedShipping?.label,
+          shippingAmount: shippingAmount.toFixed(2),
+          discountCode: appliedDiscount?.code || "",
+          discountAmount: discountAmount.toFixed(2),
         },
       }),
     });
@@ -115,7 +304,7 @@ export default function CheckoutScreen() {
     if (!paymentResponse.ok) {
       throw new Error(paymentData.error || "Failed to create payment intent");
     }
-    return paymentData as { clientSecret: string };
+    return paymentData as { clientSecret: string; customerId?: string; ephemeralKey?: string };
   };
   const createShopifyOrder = async (paymentIntentId: string) => {
     if (!backendUrl) {
@@ -129,10 +318,24 @@ export default function CheckoutScreen() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         lineItems: buildLineItems(),
-        customerEmail: cart.buyerIdentity?.email || undefined,
+        customerEmail: contact.email || undefined,
+        customerName: `${contact.firstName} ${contact.lastName}`.trim(),
+        customerPhone: contact.phone,
+        shippingAddress: shipping,
+        billingAddress: billingSameAsShipping ? shipping : billing,
+        shippingLine: selectedShipping
+          ? {
+              title: selectedShipping.label,
+              code: selectedShipping.id,
+              price: shippingAmount.toFixed(2),
+            }
+          : undefined,
+        discountCode: appliedDiscount?.code || undefined,
+        discountAmount: appliedDiscount ? discountAmount.toFixed(2) : undefined,
+        discountType: appliedDiscount?.valueType || undefined,
         currency: cart.cost.totalAmount.currencyCode,
         transactionId: paymentIntentId,
-        totalAmount: cart.cost.totalAmount.amount,
+        totalAmount: totalAfterDiscount.toFixed(2),
       }),
     });
     const orderData = await orderResponse.json().catch(() => ({}));
@@ -146,11 +349,18 @@ export default function CheckoutScreen() {
       return;
     }
     try {
+      if (!validateCheckoutForm()) {
+        return;
+      }
       setIsProcessingCard(true);
-      const { clientSecret } = await createPaymentIntent();
+      const shouldUseCustomer = useSavedPaymentMethods && Boolean(contact.email);
+      const { clientSecret, customerId, ephemeralKey } =
+        await createPaymentIntent(shouldUseCustomer);
       const initResult = await initPaymentSheet({
         paymentIntentClientSecret: clientSecret,
         merchantDisplayName: "BeatRack Fam",
+        customerId: customerId,
+        customerEphemeralKeySecret: ephemeralKey,
       });
       if (initResult.error) {
         throw new Error(initResult.error.message || "Failed to initialize payment sheet");
@@ -160,10 +370,19 @@ export default function CheckoutScreen() {
         throw new Error(paymentResult.error.message || "Payment failed");
       }
       const paymentIntentId = extractPaymentIntentId(clientSecret);
-      await createShopifyOrder(paymentIntentId);
+      const order = await createShopifyOrder(paymentIntentId);
       await clearCart();
-      router.replace("/(tabs)");
-      Alert.alert("Success", "Payment complete! Your Shopify order is confirmed.");
+      const formattedTotal = formatPrice(
+        totalAfterDiscount.toFixed(2),
+        cart.cost.totalAmount.currencyCode,
+      );
+      router.replace({
+        pathname: "/thankyou",
+        params: {
+          orderNumber: order.orderNumber ? String(order.orderNumber) : undefined,
+          total: formattedTotal,
+        },
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Payment failed";
       Alert.alert("Error", message);
@@ -176,19 +395,40 @@ export default function CheckoutScreen() {
       return;
     }
     try {
+      if (!validateCheckoutForm()) {
+        return;
+      }
       setIsProcessingWallet(true);
-      const { clientSecret } = await createPaymentIntent();
+      const { clientSecret } = await createPaymentIntent(false);
       const currencyCode = cart?.cost.totalAmount.currencyCode || "USD";
+      const paymentSummaryItemTypeImmediate =
+        PlatformPay?.PaymentSummaryItemType?.Immediate ??
+        PlatformPay?.PaymentSummaryItemType?.immediate ??
+        "immediate";
       const lineItems =
         cart?.lines.edges.map((edge) => ({
           label: edge.node.merchandise.title || "Item",
           amount: Number.parseFloat(edge.node.cost.totalAmount.amount).toFixed(2),
-          type: PlatformPay.PaymentSummaryItemType.Final,
+          type: paymentSummaryItemTypeImmediate,
         })) || [];
+      if (selectedShipping) {
+        lineItems.push({
+          label: `${selectedShipping.label} Shipping`,
+          amount: shippingAmount.toFixed(2),
+          type: paymentSummaryItemTypeImmediate,
+        });
+      }
+      if (appliedDiscount && discountAmount > 0) {
+        lineItems.push({
+          label: `${appliedDiscount.code} Discount`,
+          amount: (-discountAmount).toFixed(2),
+          type: paymentSummaryItemTypeImmediate,
+        });
+      }
       const totalItem = {
         label: "Total",
-        amount: Number.parseFloat(cart?.cost.totalAmount.amount || "0").toFixed(2),
-        type: PlatformPay.PaymentSummaryItemType.Final,
+        amount: totalAfterDiscount.toFixed(2),
+        type: paymentSummaryItemTypeImmediate,
       };
       const { error } = await confirmPlatformPayPayment(clientSecret, {
         applePay: {
@@ -206,10 +446,19 @@ export default function CheckoutScreen() {
         throw new Error(error.message || "Wallet payment failed");
       }
       const paymentIntentId = extractPaymentIntentId(clientSecret);
-      await createShopifyOrder(paymentIntentId);
+      const order = await createShopifyOrder(paymentIntentId);
       await clearCart();
-      router.replace("/(tabs)");
-      Alert.alert("Success", "Payment complete! Your Shopify order is confirmed.");
+      const formattedTotal = formatPrice(
+        totalAfterDiscount.toFixed(2),
+        cart.cost.totalAmount.currencyCode,
+      );
+      router.replace({
+        pathname: "/thankyou",
+        params: {
+          orderNumber: order.orderNumber ? String(order.orderNumber) : undefined,
+          total: formattedTotal,
+        },
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Payment failed";
       Alert.alert("Error", message);
@@ -217,17 +466,60 @@ export default function CheckoutScreen() {
       setIsProcessingWallet(false);
     }
   };
-  const handleWebCheckout = () => {
-    const checkoutUrl = cart?.checkoutUrl || "https://beatrackfam.info";
-    if (typeof window !== "undefined") {
-      window.location.href = checkoutUrl;
+  const handleShopifyCheckout = async () => {
+    if (!validateCheckoutForm()) {
+      return;
     }
+    const checkoutUrl = cart?.checkoutUrl || "https://beatrackfam.info";
+    if (Platform.OS === "web") {
+      if (typeof window !== "undefined") {
+        window.location.href = checkoutUrl;
+      }
+      return;
+    }
+    await WebBrowser.openBrowserAsync(checkoutUrl);
+  };
+  const handleSelectSavedAddress = (address: {
+    firstName: string;
+    lastName: string;
+    address1: string;
+    address2: string | null;
+    city: string;
+    province: string | null;
+    zip: string;
+    countryCodeV2: string;
+    phone: string | null;
+  }) => {
+    setShipping({
+      address1: address.address1 || "",
+      address2: address.address2 || "",
+      city: address.city || "",
+      state: address.province || "",
+      postalCode: address.zip || "",
+      country: address.countryCodeV2 || "US",
+    });
+    if (billingSameAsShipping) {
+      setBilling({
+        address1: address.address1 || "",
+        address2: address.address2 || "",
+        city: address.city || "",
+        state: address.province || "",
+        postalCode: address.zip || "",
+        country: address.countryCodeV2 || "US",
+      });
+    }
+    setContact((prev) => ({
+      email: prev.email,
+      phone: prev.phone || address.phone || "",
+      firstName: prev.firstName || address.firstName || "",
+      lastName: prev.lastName || address.lastName || "",
+    }));
   };
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={primaryColor} />
         </View>
       </SafeAreaView>
     );
@@ -290,7 +582,7 @@ export default function CheckoutScreen() {
           <View className="mb-6 rounded-2xl bg-card p-4 border border-border">
             <View className="mb-3 flex-row items-center">
               <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <LucideIcon name="Shield" size={20} color={theme.colors.primary} />
+                <LucideIcon name="Shield" size={20} color={primaryColor} />
               </View>
               <View className="flex-1">
                 <Text className="text-base font-semibold text-foreground">Secure Checkout</Text>
@@ -310,6 +602,225 @@ export default function CheckoutScreen() {
                 ? "Complete your payment on Shopify’s secure checkout in a new tab."
                 : "Pay securely in-app. We charge your card or wallet and then create the Shopify order automatically."}
             </Text>
+          </View>
+          <View className="mb-6 rounded-2xl bg-card p-4">
+            <Text className="mb-4 text-lg font-semibold text-foreground">Contact Info</Text>
+            <View className="mb-3">
+              <Label>Email</Label>
+              <Input
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={contact.email}
+                onChangeText={(value) => setContact((prev) => ({ ...prev, email: value }))}
+                placeholder="you@email.com"
+              />
+            </View>
+            <View className="mb-3">
+              <Label>Phone</Label>
+              <Input
+                keyboardType="phone-pad"
+                value={contact.phone}
+                onChangeText={(value) => setContact((prev) => ({ ...prev, phone: value }))}
+                placeholder="(555) 123-4567"
+              />
+            </View>
+            <View className="flex-row gap-3">
+              <View className="flex-1">
+                <Label>First name</Label>
+                <Input
+                  value={contact.firstName}
+                  onChangeText={(value) => setContact((prev) => ({ ...prev, firstName: value }))}
+                  placeholder="First"
+                />
+              </View>
+              <View className="flex-1">
+                <Label>Last name</Label>
+                <Input
+                  value={contact.lastName}
+                  onChangeText={(value) => setContact((prev) => ({ ...prev, lastName: value }))}
+                  placeholder="Last"
+                />
+              </View>
+            </View>
+          </View>
+          <View className="mb-6 rounded-2xl bg-card p-4">
+            <Text className="mb-4 text-lg font-semibold text-foreground">Shipping Address</Text>
+            {customer?.addresses?.edges?.length ? (
+              <View className="mb-4 rounded-xl border border-border p-3">
+                <View className="mb-2 flex-row items-center justify-between">
+                  <Text className="text-sm font-semibold text-foreground">Saved addresses</Text>
+                  <Button size="sm" variant="secondary" onPress={() => router.push("/addresses")}>
+                    <Text>Manage</Text>
+                  </Button>
+                </View>
+                <View className="flex-col gap-2">
+                  {customer.addresses.edges.map((edge) => (
+                    <Button
+                      key={edge.node.id}
+                      variant="outline"
+                      onPress={() => handleSelectSavedAddress(edge.node)}
+                      className="justify-start"
+                    >
+                      <View>
+                        <Text className="text-sm font-semibold text-foreground">
+                          {edge.node.firstName} {edge.node.lastName}
+                        </Text>
+                        <Text className="text-xs text-muted-foreground">
+                          {edge.node.address1}
+                          {edge.node.address2 ? `, ${edge.node.address2}` : ""}
+                        </Text>
+                        <Text className="text-xs text-muted-foreground">
+                          {edge.node.city}, {edge.node.province} {edge.node.zip}
+                        </Text>
+                      </View>
+                    </Button>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+            <View className="mb-3">
+              <Label>Address</Label>
+              <Input
+                value={shipping.address1}
+                onChangeText={(value) => setShipping((prev) => ({ ...prev, address1: value }))}
+                placeholder="Street address"
+              />
+            </View>
+            <View className="mb-3">
+              <Label>Apartment, suite, etc. (optional)</Label>
+              <Input
+                value={shipping.address2}
+                onChangeText={(value) => setShipping((prev) => ({ ...prev, address2: value }))}
+                placeholder="Unit"
+              />
+            </View>
+            <View className="mb-3">
+              <Label>City</Label>
+              <Input
+                value={shipping.city}
+                onChangeText={(value) => setShipping((prev) => ({ ...prev, city: value }))}
+                placeholder="City"
+              />
+            </View>
+            <View className="flex-row gap-3 mb-3">
+              <View className="flex-1">
+                <Label>State</Label>
+                <Input
+                  value={shipping.state}
+                  onChangeText={(value) => setShipping((prev) => ({ ...prev, state: value }))}
+                  placeholder="State"
+                />
+              </View>
+              <View className="flex-1">
+                <Label>ZIP</Label>
+                <Input
+                  value={shipping.postalCode}
+                  onChangeText={(value) => setShipping((prev) => ({ ...prev, postalCode: value }))}
+                  placeholder="ZIP"
+                />
+              </View>
+            </View>
+            <View>
+              <Label>Country</Label>
+              <Input
+                value={shipping.country}
+                onChangeText={(value) => setShipping((prev) => ({ ...prev, country: value }))}
+                placeholder="Country"
+              />
+            </View>
+          </View>
+          <View className="mb-6 rounded-2xl bg-card p-4">
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="text-lg font-semibold text-foreground">Billing Address</Text>
+              <View className="flex-row items-center gap-2">
+                <Text className="text-sm text-muted-foreground">Same as shipping</Text>
+                <Switch
+                  checked={billingSameAsShipping}
+                  onCheckedChange={setBillingSameAsShipping}
+                />
+              </View>
+            </View>
+            {!billingSameAsShipping && (
+              <>
+                <View className="mb-3">
+                  <Label>Address</Label>
+                  <Input
+                    value={billing.address1}
+                    onChangeText={(value) => setBilling((prev) => ({ ...prev, address1: value }))}
+                    placeholder="Street address"
+                  />
+                </View>
+                <View className="mb-3">
+                  <Label>Apartment, suite, etc. (optional)</Label>
+                  <Input
+                    value={billing.address2}
+                    onChangeText={(value) => setBilling((prev) => ({ ...prev, address2: value }))}
+                    placeholder="Unit"
+                  />
+                </View>
+                <View className="mb-3">
+                  <Label>City</Label>
+                  <Input
+                    value={billing.city}
+                    onChangeText={(value) => setBilling((prev) => ({ ...prev, city: value }))}
+                    placeholder="City"
+                  />
+                </View>
+                <View className="flex-row gap-3 mb-3">
+                  <View className="flex-1">
+                    <Label>State</Label>
+                    <Input
+                      value={billing.state}
+                      onChangeText={(value) => setBilling((prev) => ({ ...prev, state: value }))}
+                      placeholder="State"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Label>ZIP</Label>
+                    <Input
+                      value={billing.postalCode}
+                      onChangeText={(value) =>
+                        setBilling((prev) => ({ ...prev, postalCode: value }))
+                      }
+                      placeholder="ZIP"
+                    />
+                  </View>
+                </View>
+                <View>
+                  <Label>Country</Label>
+                  <Input
+                    value={billing.country}
+                    onChangeText={(value) => setBilling((prev) => ({ ...prev, country: value }))}
+                    placeholder="Country"
+                  />
+                </View>
+              </>
+            )}
+          </View>
+          <View className="mb-6 rounded-2xl bg-card p-4">
+            <Text className="mb-3 text-lg font-semibold text-foreground">Shipping Method</Text>
+            <View className="flex-col gap-2">
+              {shippingOptions.map((option) => {
+                const selected = option.id === selectedShippingId;
+                return (
+                  <Button
+                    key={option.id}
+                    variant={selected ? "default" : "outline"}
+                    onPress={() => setSelectedShippingId(option.id)}
+                    className="justify-between"
+                  >
+                    <View className="flex-row items-center justify-between w-full">
+                      <Text className={selected ? "text-primary-foreground" : "text-foreground"}>
+                        {option.label}
+                      </Text>
+                      <Text className={selected ? "text-primary-foreground" : "text-foreground"}>
+                        {formatPrice(option.amount.toFixed(2), cart.cost.totalAmount.currencyCode)}
+                      </Text>
+                    </View>
+                  </Button>
+                );
+              })}
+            </View>
           </View>
           <View className="mb-6 rounded-2xl bg-card p-4">
             <Text className="mb-3 text-lg font-semibold text-foreground">Order Summary</Text>
@@ -337,11 +848,27 @@ export default function CheckoutScreen() {
                 </Text>
               </View>
             )}
+            <View className="mb-3 flex-row justify-between">
+              <Text className="text-base text-muted-foreground">Shipping</Text>
+              <Text className="text-base text-foreground">
+                {formatPrice(shippingAmount.toFixed(2), cart.cost.totalAmount.currencyCode)}
+              </Text>
+            </View>
+            {appliedDiscount && discountAmount > 0 ? (
+              <View className="mb-3 flex-row justify-between">
+                <Text className="text-base text-muted-foreground">
+                  Discount ({appliedDiscount.code})
+                </Text>
+                <Text className="text-base text-foreground">
+                  -{formatPrice(discountAmount.toFixed(2), cart.cost.totalAmount.currencyCode)}
+                </Text>
+              </View>
+            ) : null}
             <View className="border-t border-border pt-3">
               <View className="flex-row justify-between">
                 <Text className="text-lg font-semibold text-foreground">Total</Text>
                 <Text className="text-xl font-bold text-primary">
-                  {formatPrice(cart.cost.totalAmount.amount, cart.cost.totalAmount.currencyCode)}
+                  {formatPrice(totalAfterDiscount.toFixed(2), cart.cost.totalAmount.currencyCode)}
                 </Text>
               </View>
             </View>
@@ -357,45 +884,84 @@ export default function CheckoutScreen() {
                   autoCapitalize="characters"
                 />
               </View>
-              <Button size="sm" variant="secondary" disabled={!promoCode.trim()}>
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={!promoCode.trim()}
+                onPress={applyPromoCode}
+              >
                 <Text>Apply</Text>
               </Button>
             </View>
+            {availableDiscounts.length > 0 ? (
+              <View className="mt-3 flex-row flex-wrap gap-2">
+                {availableDiscounts.slice(0, 6).map((code) => (
+                  <Button
+                    key={code.code}
+                    size="sm"
+                    variant="outline"
+                    onPress={() => {
+                      setPromoCode(code.code);
+                      setAppliedDiscount(code);
+                    }}
+                  >
+                    <Text>{code.code}</Text>
+                  </Button>
+                ))}
+              </View>
+            ) : null}
             <Text className="mt-2 text-xs text-muted-foreground">
               {Platform.OS === "web"
                 ? "Promo codes apply in Shopify checkout."
-                : "Promo codes apply after payment when Shopify order is created."}
+                : "Promo codes apply to your in-app payment and Shopify order."}
             </Text>
           </View>
           {Platform.OS !== "web" && (
-            <View className="mb-6 rounded-2xl bg-muted p-4">
-              <Text className="mb-2 text-sm font-semibold text-foreground">
-                Accepted Payment Methods
-              </Text>
-              <View className="flex-row flex-wrap">
-                {paymentMethods.map((method) => (
-                  <View
-                    key={method.id}
-                    className="mr-2 mb-2 flex-row items-center rounded-lg bg-background px-3 py-2"
-                  >
-                    <FontAwesome5 name={method.icon} size={18} color={method.color} />
-                    <Text className="ml-2 text-xs font-medium text-foreground">{method.label}</Text>
-                  </View>
-                ))}
+            <>
+              <View className="mb-6 rounded-2xl bg-card p-4">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-sm font-semibold text-foreground">
+                    Use saved payment methods
+                  </Text>
+                  <Switch
+                    checked={useSavedPaymentMethods}
+                    onCheckedChange={setUseSavedPaymentMethods}
+                  />
+                </View>
+                <Text className="mt-2 text-xs text-muted-foreground">
+                  Enable this to show saved cards in the payment sheet (requires login email).
+                </Text>
               </View>
-            </View>
+              <View className="mb-6 rounded-2xl bg-muted p-4">
+                <Text className="mb-2 text-sm font-semibold text-foreground">
+                  Accepted Payment Methods
+                </Text>
+                <View className="flex-row flex-wrap">
+                  {paymentMethods.map((method) => (
+                    <View
+                      key={method.id}
+                      className="mr-2 mb-2 flex-row items-center rounded-lg bg-background px-3 py-2"
+                    >
+                      <FontAwesome5 name={method.icon} size={18} color={method.color} />
+                      <Text className="ml-2 text-xs font-medium text-foreground">
+                        {method.label}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            </>
           )}
           <View className="h-32" />
         </ScrollView>
         <View className="border-t border-border bg-background px-4 py-4">
-          {Platform.OS === "web" ? (
-            <Button onPress={handleWebCheckout} className="w-full mb-2">
-              <View className="flex-row items-center">
-                <LucideIcon name="ExternalLink" size={20} color={theme.colors.primaryForeground} />
-                <Text className="ml-2">Continue to Shopify Checkout</Text>
-              </View>
-            </Button>
-          ) : (
+          <Button onPress={handleShopifyCheckout} className="w-full mb-2">
+            <View className="flex-row items-center">
+              <LucideIcon name="ExternalLink" size={20} color={primaryForeground} />
+              <Text className="ml-2">Continue to Shopify Checkout</Text>
+            </View>
+          </Button>
+          {Platform.OS !== "web" && (
             <>
               <Button
                 onPress={handleCardPayment}
@@ -403,7 +969,7 @@ export default function CheckoutScreen() {
                 disabled={isProcessingCard || isProcessingWallet || !backendHealthy}
               >
                 <View className="flex-row items-center">
-                  <LucideIcon name="CreditCard" size={20} color={theme.colors.primaryForeground} />
+                  <LucideIcon name="CreditCard" size={20} color={primaryForeground} />
                   <Text className="ml-2">
                     {isProcessingCard ? "Processing card..." : "Pay with Card"}
                   </Text>

@@ -168,6 +168,8 @@ function RootContent() {
             options={{ title: "Collection", headerBackTitle: "Back" }}
           />
           <Stack.Screen name="checkout" options={{ title: "Checkout", headerBackTitle: "Back" }} />
+          <Stack.Screen name="addresses" options={{ title: "Addresses" }} />
+          <Stack.Screen name="thankyou" options={{ title: "Thank You" }} />
           <Stack.Screen
             name="orders"
             options={{ title: "Order History", headerBackTitle: "Back" }}

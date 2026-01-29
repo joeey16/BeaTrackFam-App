@@ -299,7 +299,7 @@ export default function AccountScreen() {
               icon="MapPin"
               title="Addresses"
               subtitle="Manage shipping addresses"
-              onPress={() => Alert.alert("Coming Soon", "Address management is coming soon!")}
+              onPress={() => router.push("/addresses")}
             />
           </View>
         )}
