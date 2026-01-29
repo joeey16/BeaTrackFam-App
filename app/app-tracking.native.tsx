@@ -97,7 +97,11 @@ export default function AppTrackingScreen() {
   const handleOpenSettings = async () => {
     try {
       await Linking.openSettings();
-    } catch (error) {}
+    } catch (error) {
+      try {
+        await Linking.openURL("app-settings:");
+      } catch (fallbackError) {}
+    }
   };
 
   return (

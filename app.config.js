@@ -30,12 +30,14 @@ module.exports = {
           "BeaTrackFam uses tracking to personalize your shopping experience and provide you with relevant product recommendations and exclusive offers.",
       },
     ],
+
     "expo-notifications",
     "expo-location",
     [
       "@stripe/stripe-react-native",
       { merchantIdentifier: "merchant.com.beatrackfaminc", enableGooglePay: true },
     ],
+
     [
       "expo-router",
       {

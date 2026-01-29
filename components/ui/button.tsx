@@ -40,9 +40,9 @@ const buttonTextVariants = cva("web:whitespace-nowrap text-button web:transition
       destructive: "text-destructive-foreground",
       success: "text-success-foreground",
       warning: "text-warning-foreground",
-      outline: "group-active:text-accent-foreground",
+      outline: "text-foreground group-active:text-accent-foreground",
       secondary: "text-secondary-foreground group-active:text-secondary-foreground",
-      ghost: "group-active:text-accent-foreground",
+      ghost: "text-foreground group-active:text-accent-foreground",
       link: "text-primary group-active:underline",
     },
     size: {

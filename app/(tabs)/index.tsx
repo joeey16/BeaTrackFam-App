@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "~/components/ui/text";
+import { Button } from "~/components/ui/button";
 import { useProducts, useCollections, useSearchProducts } from "~/lib/shopify/hooks";
 import LucideIcon from "~/lib/icons/LucideIcon";
 import { useTheme } from "~/theming/ThemeProvider";
@@ -107,11 +108,17 @@ export default function ShopScreen() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
 
-  const { data: productsData, isLoading: loadingProducts, error: productsError } = useProducts(250);
+  const {
+    data: productsData,
+    isLoading: loadingProducts,
+    error: productsError,
+    refetch: refetchProducts,
+  } = useProducts(250);
   const {
     data: collections,
     isLoading: loadingCollections,
     error: collectionsError,
+    refetch: refetchCollections,
   } = useCollections(10);
   const { data: searchResults, isLoading: loadingSearch } = useSearchProducts(debouncedSearch, 250);
 
@@ -171,6 +178,15 @@ export default function ShopScreen() {
               <Text className="text-xs text-center text-muted-foreground mb-2">
                 Error: {productsError?.message || collectionsError?.message || "Unknown error"}
               </Text>
+              <Button
+                className="mt-4 w-full"
+                onPress={() => {
+                  refetchProducts();
+                  refetchCollections();
+                }}
+              >
+                <Text>Retry</Text>
+              </Button>
             </View>
           ) : (
             <>

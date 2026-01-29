@@ -1110,6 +1110,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@draftbit/babel-plugin-inject-jsx-source@file:/tmp/node_modules/@draftbit/babel-plugin-inject-jsx-source::locator=new-app%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@draftbit/babel-plugin-inject-jsx-source@file:/tmp/node_modules/@draftbit/babel-plugin-inject-jsx-source#/tmp/node_modules/@draftbit/babel-plugin-inject-jsx-source::hash=9df54d&locator=new-app%40workspace%3A."
+  checksum: 10c0/cbe9586b80df832aad575a417b6f11b429e854bcd64ff709ac335a94caa3f9c5f983ccec20b98ffc4555ac41b4c01ee841a2202bbe53c6810ee85d851b3d7e50
+  languageName: node
+  linkType: hard
+
+"@draftbit/iframe-element-picker@file:/tmp/node_modules/@draftbit/iframe-element-picker::locator=new-app%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@draftbit/iframe-element-picker@file:/tmp/node_modules/@draftbit/iframe-element-picker#/tmp/node_modules/@draftbit/iframe-element-picker::hash=771c33&locator=new-app%40workspace%3A."
+  checksum: 10c0/6f298cff32ad50b8f2d946ace973b13b0cc1f376f5df14494e21094ec8dcbdb57691a1431be415d51ffb8bbf24b8414f72672b27299486e0a2722f57e4962884
+  languageName: node
+  linkType: hard
+
 "@egjs/hammerjs@npm:^2.0.17":
   version: 2.0.17
   resolution: "@egjs/hammerjs@npm:2.0.17"
@@ -9048,6 +9062,8 @@ __metadata:
   resolution: "new-app@workspace:."
   dependencies:
     "@babel/core": "npm:^7.20.0"
+    "@draftbit/babel-plugin-inject-jsx-source": "file:/tmp/node_modules/@draftbit/babel-plugin-inject-jsx-source"
+    "@draftbit/iframe-element-picker": "file:/tmp/node_modules/@draftbit/iframe-element-picker"
     "@eslint/js": "npm:^8.57.0"
     "@expo-google-fonts/dev": "npm:^0.4.45"
     "@expo-google-fonts/inter": "npm:^0.4.1"
