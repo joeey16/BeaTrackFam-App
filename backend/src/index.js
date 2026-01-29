@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const Stripe = require("stripe");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -39,6 +39,7 @@ app.get("/health", (req, res) => {
 
 // Create Stripe PaymentIntent
 app.post("/payments/create-intent", async (req, res) => {
+
   try {
     const amount = safeNumber(req.body.amount);
     const currency = req.body.currency || "usd";
