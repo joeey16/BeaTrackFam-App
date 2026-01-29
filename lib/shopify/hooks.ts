@@ -246,3 +246,85 @@ export function useCustomerUpdate() {
     },
   });
 }
+
+export function useCustomerAddressCreate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      accessToken,
+      address,
+    }: {
+      accessToken: string;
+      address: {
+        firstName?: string;
+        lastName?: string;
+        company?: string;
+        address1: string;
+        address2?: string;
+        city: string;
+        province?: string;
+        country: string;
+        zip: string;
+        phone?: string;
+      };
+    }) => ShopifyAPI.customerAddressCreate(accessToken, address),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["customer", variables.accessToken] });
+    },
+  });
+}
+
+export function useCustomerAddressUpdate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      accessToken,
+      addressId,
+      address,
+    }: {
+      accessToken: string;
+      addressId: string;
+      address: {
+        firstName?: string;
+        lastName?: string;
+        company?: string;
+        address1?: string;
+        address2?: string;
+        city?: string;
+        province?: string;
+        country?: string;
+        zip?: string;
+        phone?: string;
+      };
+    }) => ShopifyAPI.customerAddressUpdate(accessToken, addressId, address),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["customer", variables.accessToken] });
+    },
+  });
+}
+
+export function useCustomerAddressDelete() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ accessToken, addressId }: { accessToken: string; addressId: string }) =>
+      ShopifyAPI.customerAddressDelete(accessToken, addressId),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["customer", variables.accessToken] });
+    },
+  });
+}
+
+export function useCustomerDefaultAddressUpdate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ accessToken, addressId }: { accessToken: string; addressId: string }) =>
+      ShopifyAPI.customerDefaultAddressUpdate(accessToken, addressId),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["customer", variables.accessToken] });
+    },
+  });
+}

@@ -401,10 +401,8 @@ export default function CheckoutScreen() {
       setIsProcessingWallet(true);
       const { clientSecret } = await createPaymentIntent(false);
       const currencyCode = cart?.cost.totalAmount.currencyCode || "USD";
-      const paymentSummaryItemTypeImmediate =
-        PlatformPay?.PaymentSummaryItemType?.Immediate ??
-        PlatformPay?.PaymentSummaryItemType?.immediate ??
-        "immediate";
+      const paymentSummaryItemTypeImmediate = "immediate";
+
       const lineItems =
         cart?.lines.edges.map((edge) => ({
           label: edge.node.merchandise.title || "Item",

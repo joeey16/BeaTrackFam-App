@@ -1,7 +1,7 @@
 module.exports = {
   name: "BeaTrackFam: Loyalty Above All",
   slug: "beatrackfaminc",
-  version: "1.2.2",
+  version: "1.2.4",
   owner: "joeey16",
   scheme: "beatrackfaminc",
   web: {
@@ -45,6 +45,7 @@ module.exports = {
         headOrigin: "https://5b024a24a2.sandbox.draftbit.dev:5100",
       },
     ],
+
     ["./plugins/draftbit-auto-launch-url-plugin"],
   ],
 
@@ -69,7 +70,7 @@ module.exports = {
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
-    buildNumber: "20",
+    buildNumber: "13",
     bundleIdentifier: "com.beatrackfaminc",
     usesAppleSignIn: true,
     requireFullScreen: true,
@@ -115,7 +116,7 @@ module.exports = {
       backgroundColor: "#ffffff",
     },
     package: "com.beatrackfaminc",
-    versionCode: 20,
+    versionCode: 13,
     permissions: [
       "INTERNET",
       "ACCESS_NETWORK_STATE",

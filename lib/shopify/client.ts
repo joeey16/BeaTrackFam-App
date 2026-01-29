@@ -1086,3 +1086,183 @@ export async function customerUpdate(
     return { accessToken: accessToken };
   }
 }
+
+// Customer address create
+export async function customerAddressCreate(
+  accessToken: string,
+  address: {
+    firstName?: string;
+    lastName?: string;
+    company?: string;
+    address1: string;
+    address2?: string;
+    city: string;
+    province?: string;
+    country: string;
+    zip: string;
+    phone?: string;
+  },
+): Promise<{ addressId: string }> {
+  const mutation = `
+    mutation CustomerAddressCreate($customerAccessToken: String!, $address: MailingAddressInput!) {
+      customerAddressCreate(customerAccessToken: $customerAccessToken, address: $address) {
+        customerAddress {
+          id
+        }
+        customerUserErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyFetch<{
+    customerAddressCreate: {
+      customerAddress: { id: string } | null;
+      customerUserErrors: Array<{ message: string }>;
+    };
+  }>(mutation, { customerAccessToken: accessToken, address });
+
+  if (data.customerAddressCreate.customerUserErrors.length > 0) {
+    throw new Error(data.customerAddressCreate.customerUserErrors.map((e) => e.message).join(", "));
+  }
+
+  if (!data.customerAddressCreate.customerAddress?.id) {
+    throw new Error("Failed to create address");
+  }
+
+  return { addressId: data.customerAddressCreate.customerAddress.id };
+}
+
+// Customer address update
+export async function customerAddressUpdate(
+  accessToken: string,
+  addressId: string,
+  address: {
+    firstName?: string;
+    lastName?: string;
+    company?: string;
+    address1?: string;
+    address2?: string;
+    city?: string;
+    province?: string;
+    country?: string;
+    zip?: string;
+    phone?: string;
+  },
+): Promise<{ addressId: string }> {
+  const mutation = `
+    mutation CustomerAddressUpdate(
+      $customerAccessToken: String!,
+      $id: ID!,
+      $address: MailingAddressInput!
+    ) {
+      customerAddressUpdate(customerAccessToken: $customerAccessToken, id: $id, address: $address) {
+        customerAddress {
+          id
+        }
+        customerUserErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyFetch<{
+    customerAddressUpdate: {
+      customerAddress: { id: string } | null;
+      customerUserErrors: Array<{ message: string }>;
+    };
+  }>(mutation, { customerAccessToken: accessToken, id: addressId, address });
+
+  if (data.customerAddressUpdate.customerUserErrors.length > 0) {
+    throw new Error(data.customerAddressUpdate.customerUserErrors.map((e) => e.message).join(", "));
+  }
+
+  if (!data.customerAddressUpdate.customerAddress?.id) {
+    throw new Error("Failed to update address");
+  }
+
+  return { addressId: data.customerAddressUpdate.customerAddress.id };
+}
+
+// Customer address delete
+export async function customerAddressDelete(
+  accessToken: string,
+  addressId: string,
+): Promise<{ deletedAddressId: string }> {
+  const mutation = `
+    mutation CustomerAddressDelete($customerAccessToken: String!, $id: ID!) {
+      customerAddressDelete(customerAccessToken: $customerAccessToken, id: $id) {
+        deletedCustomerAddressId
+        customerUserErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyFetch<{
+    customerAddressDelete: {
+      deletedCustomerAddressId: string | null;
+      customerUserErrors: Array<{ message: string }>;
+    };
+  }>(mutation, { customerAccessToken: accessToken, id: addressId });
+
+  if (data.customerAddressDelete.customerUserErrors.length > 0) {
+    throw new Error(data.customerAddressDelete.customerUserErrors.map((e) => e.message).join(", "));
+  }
+
+  if (!data.customerAddressDelete.deletedCustomerAddressId) {
+    throw new Error("Failed to delete address");
+  }
+
+  return { deletedAddressId: data.customerAddressDelete.deletedCustomerAddressId };
+}
+
+// Customer default address update
+export async function customerDefaultAddressUpdate(
+  accessToken: string,
+  addressId: string,
+): Promise<{ addressId: string }> {
+  const mutation = `
+    mutation CustomerDefaultAddressUpdate($customerAccessToken: String!, $addressId: ID!) {
+      customerDefaultAddressUpdate(
+        customerAccessToken: $customerAccessToken,
+        addressId: $addressId
+      ) {
+        customer {
+          defaultAddress {
+            id
+          }
+        }
+        customerUserErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyFetch<{
+    customerDefaultAddressUpdate: {
+      customer: { defaultAddress: { id: string } | null } | null;
+      customerUserErrors: Array<{ message: string }>;
+    };
+  }>(mutation, { customerAccessToken: accessToken, addressId });
+
+  if (data.customerDefaultAddressUpdate.customerUserErrors.length > 0) {
+    throw new Error(
+      data.customerDefaultAddressUpdate.customerUserErrors.map((e) => e.message).join(", "),
+    );
+  }
+
+  if (!data.customerDefaultAddressUpdate.customer?.defaultAddress?.id) {
+    throw new Error("Failed to update default address");
+  }
+
+  return { addressId: data.customerDefaultAddressUpdate.customer.defaultAddress.id };
+}

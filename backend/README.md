@@ -3,9 +3,11 @@
 Minimal Express backend for:
 
 - Stripe PaymentIntent creation (cards + Apple Pay + Google Pay)
+- Stripe PaymentSheet initialization (customer + ephemeral key)
 - Optional PaymentIntent status check
 - Shopify Admin API order creation
 - Shopify customer addresses
+- Shopify discount codes
 
 ## Environment
 
@@ -29,6 +31,20 @@ Returns:
 
 ```json
 { "clientSecret": "pi_..._secret_..." }
+```
+
+### POST /payments/init-payment-sheet
+
+Body:
+
+```json
+{ "amount": 1299, "currency": "usd", "customerEmail": "test@email.com" }
+```
+
+Returns:
+
+```json
+{ "clientSecret": "pi_..._secret_...", "customerId": "cus_...", "ephemeralKey": "ephkey_..." }
 ```
 
 ### POST /payments/confirm-wallet
@@ -58,6 +74,14 @@ Body:
   "transactionId": "pi_...",
   "totalAmount": "12.99"
 }
+```
+
+### GET /shopify/discount-codes
+
+Returns:
+
+```json
+{ "codes": [{ "code": "SUMMER10", "valueType": "percentage", "value": 10 }] }
 ```
 
 ### GET /customers/:id/addresses
