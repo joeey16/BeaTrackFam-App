@@ -50,9 +50,15 @@ module.exports = {
   orientation: "portrait",
   icon: "https://v2-assets.draftbit.media/5b024a24a2/icon-2026-01-21T23:37:48.531Z.png",
   userInterfaceStyle: "automatic",
-  extra:
-    '{\n    EXPO_PUBLIC_SHOPIFY_DOMAIN: process.env.EXPO_PUBLIC_SHOPIFY_DOMAIN,\n    EXPO_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN:\n      process.env.EXPO_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN,\n    EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,\n    eas: {\n      projectId: "b7ca1c99-c6e5-4c54-be20-04bc3ee66994",\n    },\n  }',
-
+  extra: {
+    EXPO_PUBLIC_SHOPIFY_DOMAIN: process.env.EXPO_PUBLIC_SHOPIFY_DOMAIN,
+    EXPO_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN:
+      process.env.EXPO_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+    EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    eas: {
+      projectId: "b7ca1c99-c6e5-4c54-be20-04bc3ee66994",
+    },
+  },
   splash: {
     image: "./assets/appicon.png",
     resizeMode: "cover",
