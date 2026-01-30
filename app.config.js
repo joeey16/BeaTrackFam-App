@@ -1,7 +1,7 @@
 module.exports = {
   name: "BeaTrackFam: Loyalty Above All",
   slug: "beatrackfaminc",
-  version: "1.2.4",
+  version: "1.2.9",
   owner: "joeey16",
   scheme: "beatrackfaminc",
   web: {
@@ -35,7 +35,11 @@ module.exports = {
     "expo-location",
     [
       "@stripe/stripe-react-native",
-      { merchantIdentifier: "merchant.com.beatrackfaminc", enableGooglePay: true },
+      {
+        merchantIdentifier: "merchant.com.beatrackfaminc",
+        enableGooglePay: true,
+        version: "latest",
+      },
     ],
 
     [
@@ -51,13 +55,17 @@ module.exports = {
 
   experiments: { typedRoutes: true, tsconfigPaths: true },
   orientation: "portrait",
-  icon: "https://v2-assets.draftbit.media/5b024a24a2/icon-2026-01-21T23:37:48.531Z.png",
+  icon: "./assets/icon.png",
   userInterfaceStyle: "automatic",
   extra: {
     EXPO_PUBLIC_SHOPIFY_DOMAIN: process.env.EXPO_PUBLIC_SHOPIFY_DOMAIN,
     EXPO_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN:
       process.env.EXPO_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN,
     EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    EXPO_PUBLIC_FACEBOOK_APP_ID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
     eas: {
       projectId: "b7ca1c99-c6e5-4c54-be20-04bc3ee66994",
     },
@@ -70,7 +78,7 @@ module.exports = {
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
-    buildNumber: "13",
+    buildNumber: "18",
     bundleIdentifier: "com.beatrackfaminc",
     usesAppleSignIn: true,
     requireFullScreen: true,
@@ -112,11 +120,11 @@ module.exports = {
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: "./assets/appicon.png",
+      foregroundImage: "./assets/icon.png",
       backgroundColor: "#ffffff",
     },
     package: "com.beatrackfaminc",
-    versionCode: 13,
+    versionCode: 18,
     permissions: [
       "INTERNET",
       "ACCESS_NETWORK_STATE",
@@ -136,7 +144,7 @@ module.exports = {
   notification: {
     iosDisplayInForeground: true,
     androidMode: "default",
-    icon: "./assets/appicon.png",
+    icon: "./assets/icon.png",
     color: undefined,
     androidCollapsedTitle: undefined,
   },

@@ -1112,15 +1112,15 @@ __metadata:
 
 "@draftbit/babel-plugin-inject-jsx-source@file:/tmp/node_modules/@draftbit/babel-plugin-inject-jsx-source::locator=new-app%40workspace%3A.":
   version: 0.0.0
-  resolution: "@draftbit/babel-plugin-inject-jsx-source@file:/tmp/node_modules/@draftbit/babel-plugin-inject-jsx-source#/tmp/node_modules/@draftbit/babel-plugin-inject-jsx-source::hash=9df54d&locator=new-app%40workspace%3A."
-  checksum: 10c0/cbe9586b80df832aad575a417b6f11b429e854bcd64ff709ac335a94caa3f9c5f983ccec20b98ffc4555ac41b4c01ee841a2202bbe53c6810ee85d851b3d7e50
+  resolution: "@draftbit/babel-plugin-inject-jsx-source@file:/tmp/node_modules/@draftbit/babel-plugin-inject-jsx-source#/tmp/node_modules/@draftbit/babel-plugin-inject-jsx-source::hash=f463de&locator=new-app%40workspace%3A."
+  checksum: 10c0/af54fd2e31077c75806a9c5637376da2f0a5510f77c3330756c6a89cc684d003013775f2f78c55aabd2c16de9d4386de6e6b89972b5c9f5460778f664f85c133
   languageName: node
   linkType: hard
 
 "@draftbit/iframe-element-picker@file:/tmp/node_modules/@draftbit/iframe-element-picker::locator=new-app%40workspace%3A.":
   version: 0.0.0
-  resolution: "@draftbit/iframe-element-picker@file:/tmp/node_modules/@draftbit/iframe-element-picker#/tmp/node_modules/@draftbit/iframe-element-picker::hash=771c33&locator=new-app%40workspace%3A."
-  checksum: 10c0/6f298cff32ad50b8f2d946ace973b13b0cc1f376f5df14494e21094ec8dcbdb57691a1431be415d51ffb8bbf24b8414f72672b27299486e0a2722f57e4962884
+  resolution: "@draftbit/iframe-element-picker@file:/tmp/node_modules/@draftbit/iframe-element-picker#/tmp/node_modules/@draftbit/iframe-element-picker::hash=40780b&locator=new-app%40workspace%3A."
+  checksum: 10c0/55f68780edd70a461fdc8ef1e0c68681c928ff4e513e648ae0c03bfedf94af3396d544efdaa9cb38783178034d103e5eec4ba0e7349934b63224664b885bccce
   languageName: node
   linkType: hard
 
@@ -6372,6 +6372,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-apple-authentication@npm:~7.2.4":
+  version: 7.2.4
+  resolution: "expo-apple-authentication@npm:7.2.4"
+  peerDependencies:
+    expo: "*"
+    react-native: "*"
+  checksum: 10c0/466270514595f267731e3ae0077ed36a944348d2f474333f9feafd88133f2bf1e609fbd8e5660771f80152ca9c164e4d12c7783261b7dc4185f3350a2730db06
+  languageName: node
+  linkType: hard
+
 "expo-application@npm:~6.1.5":
   version: 6.1.5
   resolution: "expo-application@npm:6.1.5"
@@ -9110,6 +9120,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.37.5"
     eslint-plugin-react-native: "npm:^5.0.0"
     expo: "npm:~53.0.25"
+    expo-apple-authentication: "npm:~7.2.4"
     expo-asset: "npm:~11.1.7"
     expo-constants: "npm:~17.1.8"
     expo-font: "npm:~13.3.2"
