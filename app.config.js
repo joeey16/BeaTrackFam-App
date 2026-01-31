@@ -80,7 +80,7 @@ module.exports = {
     },
   },
   android: {
-    adaptiveIcon: { foregroundImage: "./assets/icon.png", backgroundColor: "#ffffff" },
+    adaptiveIcon: { foregroundImage: "./assets/appicon.png", backgroundColor: "#ffffff" },
     package: "com.beatrackfaminc",
     versionCode: 30,
     permissions: [
@@ -98,5 +98,8 @@ module.exports = {
     allowBackup: true,
   },
   platforms: ["ios", "android", "web"],
-  notification: { iosDisplayInForeground: true, androidMode: "default", icon: "./assets/icon.png" },
+  notification: { 
+    iosDisplayInForeground: true, 
+    androidMode: "default", 
+    icon: "./assets/appicon.png" },
 };
