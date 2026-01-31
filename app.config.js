@@ -59,6 +59,14 @@ module.exports = {
   userInterfaceStyle: "automatic",
   extra:
     '{\n    EXPO_PUBLIC_SHOPIFY_DOMAIN: process.env.EXPO_PUBLIC_SHOPIFY_DOMAIN,\n    EXPO_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN:\n      process.env.EXPO_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN,\n    EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,\n    EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,\n    EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,\n    EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,\n    EXPO_PUBLIC_FACEBOOK_APP_ID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,\n    eas: {\n      projectId: "b7ca1c99-c6e5-4c54-be20-04bc3ee66994",\n    },\n  }',
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "b7ca1c99-c6e5-4c54-be20-04bc3ee66994"
+      }
+    }
+  }
+}
 
   splash: {
     image: "./assets/appicon.png",
