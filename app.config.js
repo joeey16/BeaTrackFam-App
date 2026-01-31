@@ -52,7 +52,10 @@ module.exports = {
     EXPO_PUBLIC_FACEBOOK_APP_ID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID,
     eas: { projectId: "b7ca1c99-c6e5-4c54-be20-04bc3ee66994" },
   },
-  splash: { image: "./assets/appicon.png", resizeMode: "cover", backgroundColor: "#a1a1a1" },
+  splash: { 
+    image: "./assets/appicon.png", 
+    resizeMode: "cover", 
+    backgroundColor: "#a1a1a1" },
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
@@ -76,7 +79,9 @@ module.exports = {
     },
   },
   android: {
-    adaptiveIcon: { foregroundImage: "./assets/icon.png", backgroundColor: "#ffffff" },
+    adaptiveIcon: { 
+      foregroundImage: "./assets/icon.png", 
+      backgroundColor: "#ffffff" },
     package: "com.beatrackfaminc",
     versionCode: 18,
     permissions: [
@@ -93,5 +98,8 @@ module.exports = {
     allowBackup: true,
   },
   platforms: ["ios", "android", "web"],
-  notification: { iosDisplayInForeground: true, androidMode: "default", icon: "./assets/icon.png" },
+  notification: { iosDisplayInForeground: true, 
+                 androidMode: "default", 
+                 icon: "./assets/icon.png" 
+                },
 };
