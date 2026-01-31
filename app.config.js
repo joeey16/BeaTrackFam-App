@@ -1,7 +1,7 @@
 module.exports = {
   name: "BeaTrackFam: Loyalty Above All",
   slug: "beatrackfaminc",
-  version: "1.2.9",
+  version: "1.3.0",
   owner: "joeey16",
   scheme: "beatrackfaminc",
   web: { bundler: "metro", output: "single", favicon: "./assets/images/favicon.png" },
@@ -56,7 +56,7 @@ module.exports = {
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
-    buildNumber: "18",
+    buildNumber: "30",
     bundleIdentifier: "com.beatrackfaminc",
     usesAppleSignIn: true,
     requireFullScreen: true,
