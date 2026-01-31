@@ -43,7 +43,7 @@ module.exports = {
 
   experiments: { typedRoutes: true, tsconfigPaths: true },
   orientation: "portrait",
-  icon: "./assets/icon.png",
+  icon: "./assets/appicon.png",
   userInterfaceStyle: "automatic",
   extra: {
     EXPO_PUBLIC_SHOPIFY_DOMAIN: process.env.EXPO_PUBLIC_SHOPIFY_DOMAIN,
