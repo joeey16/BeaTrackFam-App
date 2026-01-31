@@ -18,6 +18,7 @@ module.exports = {
           "BeaTrackFam uses tracking to personalize your shopping experience and provide you with relevant product recommendations and exclusive offers.",
       },
     ],
+
     "expo-notifications",
     "expo-location",
     [
@@ -28,6 +29,7 @@ module.exports = {
         version: "latest",
       },
     ],
+
     [
       "expo-router",
       {
@@ -35,8 +37,10 @@ module.exports = {
         headOrigin: "https://5b024a24a2.sandbox.draftbit.dev:5100",
       },
     ],
+
     ["./plugins/draftbit-auto-launch-url-plugin"],
   ],
+
   experiments: { typedRoutes: true, tsconfigPaths: true },
   orientation: "portrait",
   icon: "./assets/icon.png",
@@ -78,7 +82,7 @@ module.exports = {
   android: {
     adaptiveIcon: { foregroundImage: "./assets/icon.png", backgroundColor: "#ffffff" },
     package: "com.beatrackfaminc",
-    versionCode: 18,
+    versionCode: 30,
     permissions: [
       "INTERNET",
       "ACCESS_NETWORK_STATE",
@@ -90,6 +94,7 @@ module.exports = {
       "POST_NOTIFICATIONS",
       "com.google.android.gms.permission.AD_ID",
     ],
+
     allowBackup: true,
   },
   platforms: ["ios", "android", "web"],
