@@ -1,0 +1,16 @@
+{
+  "name": "shopify-stripe-backend",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.6",
+    "express": "^4.21.3",
+    "stripe": "^19.2.0"
+  }
+}
