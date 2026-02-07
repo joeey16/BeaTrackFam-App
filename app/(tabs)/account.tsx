@@ -225,74 +225,106 @@ export default function AccountScreen() {
     <View className="flex-1 bg-background">
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
         {/* User Info */}
-        <View className="pt-4 pb-6">
-          {customer ? (
-            <View className="flex-row items-center">
-              <Pressable onPress={handleEditProfile} className="mr-4">
-                <View className="relative">
-                  {profilePicture ? (
-                    <Image
-                      key={profilePicture}
-                      source={{ uri: profilePicture }}
-                      style={{ width: 64, height: 64, borderRadius: 32 }}
-                    />
-                  ) : (
+        {customer ? (
+          <View className="pt-4 pb-6">
+            <View
+              className="rounded-2xl p-5 mb-6"
+              style={{ backgroundColor: theme.colors.primary }}
+            >
+              <View className="flex-row items-center">
+                <Pressable onPress={handleEditProfile} className="mr-4">
+                  <View className="relative">
+                    {profilePicture ? (
+                      <Image
+                        key={profilePicture}
+                        source={{ uri: profilePicture }}
+                        style={{ width: 72, height: 72, borderRadius: 36 }}
+                      />
+                    ) : (
+                      <View
+                        className="items-center justify-center bg-background"
+                        style={{
+                          width: 72,
+                          height: 72,
+                          borderRadius: 36,
+                        }}
+                      >
+                        <LucideIcon name="User" size={32} color={theme.colors.primary} />
+                      </View>
+                    )}
                     <View
-                      className="items-center justify-center"
-                      style={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: 32,
-                        backgroundColor: `${theme.colors.primary}20`,
-                      }}
+                      className="absolute bottom-0 right-0 h-7 w-7 items-center justify-center rounded-full border-2 bg-background"
+                      style={{ borderColor: theme.colors.primary }}
                     >
-                      <LucideIcon name="User" size={28} color={theme.colors.primary} />
+                      <LucideIcon name="Camera" size={14} color={theme.colors.primary} />
                     </View>
-                  )}
-                  <View
-                    className="absolute bottom-0 right-0 h-6 w-6 items-center justify-center rounded-full border-2 bg-primary"
-                    style={{ borderColor: theme.colors.background }}
-                  >
-                    <LucideIcon name="Camera" size={12} color={theme.colors.primaryForeground} />
                   </View>
+                </Pressable>
+                <View className="flex-1">
+                  <Text
+                    className="text-xl font-bold mb-1"
+                    style={{ color: theme.colors.primaryForeground }}
+                  >
+                    {customer.displayName}
+                  </Text>
+                  <Text
+                    className="text-sm"
+                    style={{ color: theme.colors.primaryForeground, opacity: 0.8 }}
+                  >
+                    {customer.email}
+                  </Text>
+                  <Pressable onPress={handleEditProfile} className="mt-2">
+                    <Text
+                      className="text-xs font-medium"
+                      style={{ color: theme.colors.primaryForeground }}
+                    >
+                      Edit Profile →
+                    </Text>
+                  </Pressable>
                 </View>
-              </Pressable>
-              <View className="flex-1">
-                <Text className="text-lg font-semibold text-foreground">
-                  {customer.displayName}
-                </Text>
-                <Text className="text-sm text-muted-foreground">{customer.email}</Text>
               </View>
             </View>
-          ) : (
-            <Text className="text-sm text-muted-foreground">
-              Log in to access your orders and saved addresses
-            </Text>
-          )}
-        </View>
-
-        {/* Auth Section */}
-        {!customer ? (
-          <View className="mb-6">
-            <Button onPress={() => router.push("/auth/login")} className="mb-3">
-              <Text>Log In</Text>
-            </Button>
-            <Button onPress={() => router.push("/auth/signup")} variant="outline">
-              <Text className="text-foreground">Create Account</Text>
-            </Button>
           </View>
         ) : (
+          <View className="pt-4 pb-6">
+            <View className="rounded-2xl bg-card p-6 mb-4 border border-border">
+              <View className="items-center mb-4">
+                <View className="h-16 w-16 items-center justify-center rounded-full bg-muted mb-3">
+                  <LucideIcon name="User" size={32} color={theme.colors.mutedForeground} />
+                </View>
+                <Text className="text-lg font-bold text-foreground mb-1">
+                  Welcome to BeaTrackFam
+                </Text>
+                <Text className="text-sm text-center text-muted-foreground">
+                  Sign in to access exclusive features and track your orders
+                </Text>
+              </View>
+              <Button onPress={() => router.push("/auth/login")} className="mb-3" size="lg">
+                <Text>Log In</Text>
+              </Button>
+              <Button onPress={() => router.push("/auth/signup")} variant="outline" size="lg">
+                <Text className="text-foreground">Create Account</Text>
+              </Button>
+            </View>
+          </View>
+        )}
+
+        {/* My Account Section */}
+        {customer && (
           <View className="mb-6">
+            <Text className="text-sm font-semibold text-muted-foreground mb-3 px-1">
+              MY ACCOUNT
+            </Text>
             <MenuItem
               icon="User"
-              title="Edit Profile"
-              subtitle="Update your personal information"
-              onPress={handleEditProfile}
+              title="My Profile"
+              subtitle="View your profile and stats"
+              onPress={() => router.push("/my-profile")}
             />
             <MenuItem
               icon="Package"
               title="Order History"
-              subtitle="View your past orders"
+              subtitle="Track your purchases"
               onPress={() => router.push("/orders")}
             />
             <MenuItem
@@ -304,9 +336,17 @@ export default function AccountScreen() {
           </View>
         )}
 
-        {/* App Info Section */}
+        {/* App Section */}
         <View className="mb-6">
-          <Text className="text-sm font-semibold text-muted-foreground mb-3 px-1">APP INFO</Text>
+          <Text className="text-sm font-semibold text-muted-foreground mb-3 px-1">
+            {customer ? "APP" : "EXPLORE"}
+          </Text>
+          <MenuItem
+            icon="Palette"
+            title="Custom Design Request"
+            subtitle="Design your own merch"
+            onPress={() => router.push("/custom-request")}
+          />
           <MenuItem
             icon="Share2"
             title="Share App"
@@ -330,8 +370,14 @@ export default function AccountScreen() {
         {/* Logout & Delete Account */}
         {customer && (
           <View className="mb-8">
-            <Button onPress={handleLogout} variant="destructive" className="mb-3">
-              <Text>Log Out</Text>
+            <Text className="text-sm font-semibold text-muted-foreground mb-3 px-1">
+              ACCOUNT ACTIONS
+            </Text>
+            <Button onPress={handleLogout} variant="outline" className="mb-3">
+              <View className="flex-row items-center">
+                <LucideIcon name="LogOut" size={18} color={theme.colors.foreground} />
+                <Text className="ml-2 text-foreground">Log Out</Text>
+              </View>
             </Button>
             <Button
               onPress={handleDeleteAccount}
@@ -342,11 +388,52 @@ export default function AccountScreen() {
               {customerDelete.isPending ? (
                 <ActivityIndicator color={theme.colors.destructive} />
               ) : (
-                <Text className="text-destructive">Delete Account</Text>
+                <View className="flex-row items-center">
+                  <LucideIcon name="Trash2" size={18} color={theme.colors.destructive} />
+                  <Text className="ml-2 text-destructive">Delete Account</Text>
+                </View>
               )}
             </Button>
           </View>
         )}
+
+        {/* Social Media */}
+        <View className="mb-6">
+          <Text className="text-sm font-semibold text-muted-foreground mb-3 px-1">
+            CONNECT WITH US
+          </Text>
+          <View className="rounded-2xl bg-card p-5">
+            <View className="flex-row items-center justify-around">
+              <Pressable
+                onPress={() => handleOpenUrl("https://instagram.com/beatrackfam")}
+                className="flex-1 items-center"
+              >
+                <View className="h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-2">
+                  <LucideIcon name="Instagram" size={24} color={theme.colors.primary} />
+                </View>
+                <Text className="text-xs font-medium text-foreground">Instagram</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleOpenUrl("https://tiktok.com/@beatrackfam")}
+                className="flex-1 items-center"
+              >
+                <View className="h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-2">
+                  <LucideIcon name="Music4" size={24} color={theme.colors.primary} />
+                </View>
+                <Text className="text-xs font-medium text-foreground">TikTok</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleOpenUrl("https://facebook.com/beatrackfam")}
+                className="flex-1 items-center"
+              >
+                <View className="h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-2">
+                  <LucideIcon name="Facebook" size={24} color={theme.colors.primary} />
+                </View>
+                <Text className="text-xs font-medium text-foreground">Facebook</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
 
         {/* About Us */}
         <View className="mb-8">
@@ -414,36 +501,6 @@ export default function AccountScreen() {
               brand committed to giving back.{"\n\n"}
               Express Your True Rhythm. Become Part of the Family, The BeaTrackFam.
             </Text>
-
-            <View className="mt-5 flex-row items-center justify-around">
-              <Pressable
-                onPress={() => handleOpenUrl("https://instagram.com/beatrackfam")}
-                className="flex-1 items-center"
-              >
-                <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-2">
-                  <LucideIcon name="Instagram" size={20} color={theme.colors.primary} />
-                </View>
-                <Text className="text-xs text-muted-foreground">Instagram</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => handleOpenUrl("https://tiktok.com/@beatrackfam")}
-                className="flex-1 items-center"
-              >
-                <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-2">
-                  <LucideIcon name="Music4" size={20} color={theme.colors.primary} />
-                </View>
-                <Text className="text-xs text-muted-foreground">TikTok</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => handleOpenUrl("https://facebook.com/beatrackfam")}
-                className="flex-1 items-center"
-              >
-                <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-2">
-                  <LucideIcon name="Facebook" size={20} color={theme.colors.primary} />
-                </View>
-                <Text className="text-xs text-muted-foreground">Facebook</Text>
-              </Pressable>
-            </View>
           </View>
         </View>
 

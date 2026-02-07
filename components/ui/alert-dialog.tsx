@@ -4,7 +4,7 @@ import { Platform, View, type ViewProps } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { buttonTextVariants, buttonVariants } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
-import { TextClassContext } from "~/components/ui/text";
+import { Text, TextClassContext } from "~/components/ui/text";
 import { useWebPortal } from "../WebPortalContext";
 
 const AlertDialog = AlertDialogPrimitive.Root;
@@ -104,57 +104,73 @@ function AlertDialogFooter({ className, ...props }: ViewProps) {
 
 function AlertDialogTitle({
   className,
+  children,
   ...props
 }: AlertDialogPrimitive.TitleProps & {
   ref?: React.RefObject<AlertDialogPrimitive.TitleRef>;
 }) {
+  const content = React.isValidElement(children) ? children : <Text>{children}</Text>;
   return (
     <AlertDialogPrimitive.Title
       className={cn("native:text-xl text-h4 text-foreground", className)}
       {...props}
-    />
+    >
+      {content}
+    </AlertDialogPrimitive.Title>
   );
 }
 
 function AlertDialogDescription({
   className,
+  children,
   ...props
 }: AlertDialogPrimitive.DescriptionProps & {
   ref?: React.RefObject<AlertDialogPrimitive.DescriptionRef>;
 }) {
+  const content = React.isValidElement(children) ? children : <Text>{children}</Text>;
   return (
     <AlertDialogPrimitive.Description
       className={cn("text-sm text-muted-foreground", className)}
       {...props}
-    />
+    >
+      {content}
+    </AlertDialogPrimitive.Description>
   );
 }
 
 function AlertDialogAction({
   className,
+  children,
   ...props
 }: AlertDialogPrimitive.ActionProps & {
   ref?: React.RefObject<AlertDialogPrimitive.ActionRef>;
 }) {
+  const content = React.isValidElement(children) ? children : <Text>{children}</Text>;
   return (
     <TextClassContext.Provider value={buttonTextVariants({ className })}>
-      <AlertDialogPrimitive.Action className={cn(buttonVariants(), className)} {...props} />
+      <AlertDialogPrimitive.Action className={cn(buttonVariants(), className)} {...props}>
+        {content}
+      </AlertDialogPrimitive.Action>
     </TextClassContext.Provider>
   );
 }
 
 function AlertDialogCancel({
   className,
+  children,
   ...props
 }: AlertDialogPrimitive.CancelProps & {
   ref?: React.RefObject<AlertDialogPrimitive.CancelRef>;
 }) {
+  const content = React.isValidElement(children) ? children : <Text>{children}</Text>;
   return (
     <TextClassContext.Provider value={buttonTextVariants({ className, variant: "outline" })}>
       <AlertDialogPrimitive.Cancel
         className={cn(buttonVariants({ variant: "outline", className }))}
         {...props}
-      />
+      >
+        {content}
+      </AlertDialogPrimitive.Cancel>
     </TextClassContext.Provider>
   );
 }

@@ -4,6 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { Text } from "~/components/ui/text";
 import { Button } from "~/components/ui/button";
+import { useTheme } from "~/theming/ThemeProvider";
+import LucideIcon from "~/lib/icons/LucideIcon";
 const styles = {
   container: "flex-1 bg-background",
   content: "flex-1 items-center justify-center px-8",
@@ -18,11 +20,20 @@ const styles = {
 export default function AppTrackingScreenWeb() {
   const { source } = useLocalSearchParams<{ source?: string }>();
   const isFromSettings = source === "settings";
+  const { theme } = useTheme();
+
   return (
     <SafeAreaView className={styles.container} edges={["top", "left", "right"]}>
       <Stack.Screen options={{ title: "App Tracking" }} />
       <View className={styles.content}>
-        <Text className={styles.title}>App Tracking Transparency</Text>
+        <View
+          className="h-24 w-24 items-center justify-center rounded-full mb-6"
+          style={{ backgroundColor: theme.colors.primary }}
+        >
+          <LucideIcon name="Shield" size={48} color={theme.colors.primaryForeground} />
+        </View>
+
+        <Text className={styles.title}>Your Privacy Matters</Text>
         <Text className={styles.description}>
           App Tracking Transparency is available on iPhone and iPad. This setting can only be
           managed on the mobile app.

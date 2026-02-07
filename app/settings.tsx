@@ -122,7 +122,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
-      <Stack.Screen options={{ title: "Settings" }} />
+      <Stack.Screen options={{ title: "Settings", headerBackTitle: "Back" }} />
       <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
         {/* Appearance Section */}
         <View className="pt-4 mb-6">

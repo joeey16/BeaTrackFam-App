@@ -369,9 +369,9 @@ export default function ProfileScreen() {
   if (isLoadingCustomer) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
-        <Stack.Screen options={{ title: "Edit Profile" }} />
+        <Stack.Screen options={{ title: "Edit Profile", headerBackTitle: "Back" }} />
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       </SafeAreaView>
     );
@@ -380,11 +380,20 @@ export default function ProfileScreen() {
   if (!customer) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
-        <Stack.Screen options={{ title: "Edit Profile" }} />
+        <Stack.Screen options={{ title: "Edit Profile", headerBackTitle: "Back" }} />
         <View className="flex-1 items-center justify-center px-8">
-          <Text className="text-center text-muted-foreground">
-            Please log in to view your profile
+          <View className="h-24 w-24 items-center justify-center rounded-full bg-muted mb-4">
+            <LucideIcon name="User" size={48} color={theme.colors.mutedForeground} />
+          </View>
+          <Text className="text-h3 mb-2 text-center font-semibold text-foreground">
+            Please Log In
           </Text>
+          <Text className="text-center text-muted-foreground mb-6">
+            Sign in to view and edit your profile
+          </Text>
+          <Button onPress={() => router.push("/auth/login")} size="lg">
+            <Text>Log In</Text>
+          </Button>
         </View>
       </SafeAreaView>
     );
@@ -392,7 +401,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
-      <Stack.Screen options={{ title: "Edit Profile" }} />
+      <Stack.Screen options={{ title: "Edit Profile", headerBackTitle: "Back" }} />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"

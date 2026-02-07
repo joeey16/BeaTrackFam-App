@@ -177,22 +177,48 @@ function RootContent() {
             options={{ title: "Collection", headerBackTitle: "Back" }}
           />
           <Stack.Screen name="checkout" options={{ title: "Checkout", headerBackTitle: "Back" }} />
-          <Stack.Screen name="addresses" options={{ title: "Addresses" }} />
-          <Stack.Screen name="thankyou" options={{ title: "Thank You" }} />
+          <Stack.Screen
+            name="addresses"
+            options={{ title: "Addresses", headerBackTitle: "Back" }}
+          />
+          <Stack.Screen name="thankyou" options={{ title: "Thank You", headerBackTitle: "Back" }} />
           <Stack.Screen
             name="orders"
             options={{ title: "Order History", headerBackTitle: "Back" }}
           />
-          <Stack.Screen name="debug" options={{ title: "Debug" }} />
+          <Stack.Screen name="debug" options={{ title: "Debug", headerBackTitle: "Back" }} />
           <Stack.Screen
             name="support"
             options={{ title: "Support Center", headerBackTitle: "Back" }}
           />
           <Stack.Screen name="settings" options={{ title: "Settings", headerBackTitle: "Back" }} />
-          <Stack.Screen name="app-tracking" options={{ title: "App Tracking" }} />
+          <Stack.Screen
+            name="app-tracking"
+            options={{ title: "App Tracking", headerBackTitle: "Back" }}
+          />
           <Stack.Screen
             name="profile"
             options={{ title: "Edit Profile", headerBackTitle: "Back" }}
+          />
+          <Stack.Screen
+            name="collections"
+            options={{ title: "All Collections", headerBackTitle: "Back" }}
+          />
+          <Stack.Screen
+            name="products"
+            options={{ title: "All Products", headerBackTitle: "Back" }}
+          />
+          <Stack.Screen
+            name="custom-request"
+            options={{ title: "Custom Design Request", headerBackTitle: "Back" }}
+          />
+          <Stack.Screen
+            name="my-profile"
+            options={{ title: "My Profile", headerBackTitle: "Back" }}
+          />
+          <Stack.Screen
+            name="menu"
+            options={{ title: "Menu", headerBackTitle: "Close", presentation: "modal" }}
           />
         </Stack>
         <View

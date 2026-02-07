@@ -18,24 +18,24 @@ interface OnboardingSlide {
 const slides: OnboardingSlide[] = [
   {
     icon: "ShoppingBag",
-    title: "Shop Exclusive Merch",
+    title: "Welcome to the Fam",
     description:
-      "Discover unique BeaTrackFam merchandise and streetwear. Get access to exclusive drops and limited editions.",
-    color: "#8B5CF6",
+      "Discover unique BeaTrackFam merchandise and streetwear. Premium quality, authentic designs, and limited drops made with loyalty and integrity.",
+    color: "#000000",
+  },
+  {
+    icon: "Palette",
+    title: "Custom Designs",
+    description:
+      "Request custom merch tailored to your vision. Work directly with our design team to create something truly unique that represents your style.",
+    color: "#000000",
   },
   {
     icon: "Heart",
-    title: "Save Your Favorites",
+    title: "Built on Loyalty",
     description:
-      "Create your wishlist and never miss out on items you love. Get notified when they're back in stock.",
-    color: "#EC4899",
-  },
-  {
-    icon: "Zap",
-    title: "Fast & Secure Checkout",
-    description:
-      "Seamless shopping experience with secure payments. Track your orders in real-time.",
-    color: "#10B981",
+      "More than just clothing - we're a community. Every purchase supports our mission to give back and lift others. Loyalty Above All.",
+    color: "#000000",
   },
 ];
 

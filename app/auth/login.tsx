@@ -25,6 +25,7 @@ import {
   GOOGLE_CLIENT_IDS,
   FACEBOOK_APP_ID,
 } from "~/lib/auth/authService";
+import Constants from "expo-constants";
 import { useCustomerCreate, useCustomerLogin } from "~/lib/shopify/hooks";
 import { useAuth } from "~/lib/contexts/AuthContext";
 import { useOnboarding } from "~/lib/contexts/OnboardingContext";
@@ -59,18 +60,30 @@ export default function LoginScreen() {
     message: string;
     actions: Array<{ label: string; onPress: () => void }>;
   } | null>(null);
+  const [successMessage, setSuccessMessage] = React.useState("");
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   // Validation
   const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
   const isLoginFormValid = isValidEmail(email) && password.length > 0;
+  const isExpoGo = Constants.appOwnership === "expo";
   const isGoogleConfigured =
+    (isExpoGo && !!GOOGLE_CLIENT_IDS.expo) ||
     (Platform.OS === "ios" && !!GOOGLE_CLIENT_IDS.ios) ||
     (Platform.OS === "android" && !!GOOGLE_CLIENT_IDS.android) ||
     (Platform.OS === "web" && !!GOOGLE_CLIENT_IDS.web);
   const isFacebookConfigured = !!FACEBOOK_APP_ID;
 
-  const getErrorMessage = (error: unknown) =>
-    error instanceof Error ? error.message : "Something went wrong. Please try again.";
+  const getErrorMessage = (error: unknown) => {
+    if (!(error instanceof Error)) {
+      return "Something went wrong. Please try again.";
+    }
+    const message = error.message;
+    if (message.toLowerCase().includes("unidentified customer")) {
+      return "Incorrect email or password. Please try again.";
+    }
+    return message;
+  };
 
   const showAuthError = (
     title: string,
@@ -78,6 +91,20 @@ export default function LoginScreen() {
     actions: Array<{ label: string; onPress: () => void }>,
   ) => {
     setErrorDialog({ title, message, actions });
+    setErrorMessage(message);
+  };
+  const showAuthSuccess = (message: string) => {
+    setSuccessMessage(message);
+    setErrorDialog(null);
+    setErrorMessage("");
+  };
+  const waitForToast = () => new Promise((resolve) => setTimeout(resolve, 3500));
+
+  const dismissToAccount = () => {
+    if (typeof router.canDismiss === "function" && router.canDismiss()) {
+      router.dismiss();
+    }
+    router.replace("/(tabs)/account");
   };
 
   /**
@@ -93,7 +120,9 @@ export default function LoginScreen() {
 
       await login(result.accessToken);
       await completeWelcome();
-      router.replace("/(tabs)/account");
+      showAuthSuccess("Login successful. Redirecting to your account...");
+      await waitForToast();
+      dismissToAccount();
     } catch (error) {
       throw error;
     } finally {
@@ -133,7 +162,9 @@ export default function LoginScreen() {
       await setSocialPassword(profile.email, newPassword, provider);
       await login(token.accessToken);
       await completeWelcome();
-      router.replace("/(tabs)/account");
+      showAuthSuccess("Account created. Redirecting to your account...");
+      await waitForToast();
+      dismissToAccount();
     } catch (error) {
       const message = getErrorMessage(error);
       showAuthError("Account not linked", message, [
@@ -151,6 +182,7 @@ export default function LoginScreen() {
   const handleEmailLogin = async () => {
     if (!isLoginFormValid) return;
     setLoadingProvider("email");
+    setSuccessMessage("");
     try {
       await performShopifyLogin(email, password);
     } catch (error) {
@@ -177,7 +209,7 @@ export default function LoginScreen() {
       } else {
         showAuthError(
           "Apple sign-in incomplete",
-          "Apple didn’t share your email. Please use email login or another provider.",
+          "Apple only shares your email the first time you sign in. Please use email login or sign in with the same Apple ID you used before.",
           [
             { label: "Use email login", onPress: () => {} },
             { label: "Try again", onPress: () => {} },
@@ -209,167 +241,122 @@ export default function LoginScreen() {
   }, [facebookUser]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
-      >
-        <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
-          <View className="py-8">
-            <View className="mb-8">
-              <Text className="text-h1 mb-2 font-bold text-foreground">Welcome Back</Text>
-              <Text className="text-base text-muted-foreground">
-                Log in to your BeaTrackFam account
-              </Text>
-            </View>
-
-            {/* Social Buttons Section */}
-            <View className="gap-y-3 mb-8">
-              {/* Google */}
-              <Button
-                variant="outline"
-                disabled={!!loadingProvider}
-                onPress={() => {
-                  if (!isGoogleConfigured) {
-                    showAuthError(
-                      "Google sign-in not configured",
-                      "Add your Google client IDs to enable this provider.",
-                      [{ label: "OK", onPress: () => {} }],
-                    );
-                    return;
-                  }
-                  setLoadingProvider("google");
-                  googleLogin().catch(() => setLoadingProvider(null));
-                }}
-              >
-                {loadingProvider === "google" ? (
-                  <ActivityIndicator size="sm" />
-                ) : (
-                  <Text>Sign in with Google</Text>
-                )}
-              </Button>
-
-              {/* Facebook */}
-              <Button
-                variant="outline"
-                disabled={!!loadingProvider}
-                onPress={() => {
-                  if (!isFacebookConfigured) {
-                    showAuthError(
-                      "Facebook sign-in not configured",
-                      "Add your Facebook App ID to enable this provider.",
-                      [{ label: "OK", onPress: () => {} }],
-                    );
-                    return;
-                  }
-                  setLoadingProvider("facebook");
-                  facebookLogin().catch(() => setLoadingProvider(null));
-                }}
-              >
-                {loadingProvider === "facebook" ? (
-                  <ActivityIndicator size="sm" />
-                ) : (
-                  <Text>Sign in with Facebook</Text>
-                )}
-              </Button>
-
-              {/* Apple */}
-              {Platform.OS === "ios" && (
-                <AppleAuthentication.AppleAuthenticationButton
-                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-                  buttonStyle={
-                    theme.dark
-                      ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
-                      : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-                  }
-                  cornerRadius={12}
-                  style={{
-                    width: "100%",
-                    height: 48,
-                    opacity: loadingProvider === "apple" ? 0.5 : 1,
-                  }}
-                  onPress={handleAppleLogin}
-                />
-              )}
-            </View>
-
-            <View className="flex-row items-center mb-8">
-              <View className="flex-1 h-[1px] bg-border" />
-              <Text className="mx-4 text-muted-foreground text-xs uppercase">
-                Or continue with email
-              </Text>
-              <View className="flex-1 h-[1px] bg-border" />
-            </View>
-
-            {/* Email Form */}
-            <View className="space-y-4">
-              <View>
-                <Text className="mb-2 text-sm font-medium">Email</Text>
-                <TextInput
-                  placeholder="name@example.com"
-                  placeholderTextColor={theme.colors.mutedForeground}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  className="rounded-xl border border-border bg-card px-4 py-3 text-foreground"
-                />
-                {email.length > 0 && !isValidEmail(email) && (
-                  <Text className="text-destructive text-xs mt-1 ml-1">Invalid email format</Text>
-                )}
+    <>
+      <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+        >
+          <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
+            <View className="py-8">
+              <View className="mb-8 items-center">
+                <View
+                  className="h-20 w-20 items-center justify-center rounded-full mb-4"
+                  style={{ backgroundColor: theme.colors.primary }}
+                >
+                  <LucideIcon name="User" size={40} color={theme.colors.primaryForeground} />
+                </View>
+                <Text className="text-3xl mb-2 font-bold text-foreground text-center">
+                  Welcome Back
+                </Text>
+                <Text className="text-base text-muted-foreground text-center">
+                  Log in to your BeaTrackFam account
+                </Text>
               </View>
 
-              <View>
-                <Text className="mb-2 text-sm font-medium">Password</Text>
-                <View className="flex-row items-center rounded-xl border border-border bg-card px-4 py-3">
+              {/* Social Buttons Section (removed) */}
+
+              {/* Email Form */}
+              <View className="space-y-4">
+                <View>
+                  <Text className="mb-2 text-sm font-medium text-foreground">Email</Text>
                   <TextInput
-                    placeholder="Enter password"
+                    placeholder="name@example.com"
                     placeholderTextColor={theme.colors.mutedForeground}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
-                    className="flex-1 text-foreground"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    className="rounded-xl border border-border bg-card px-4 py-3 text-foreground"
                   />
-                  <Button variant="ghost" size="sm" onPress={() => setShowPassword(!showPassword)}>
-                    <LucideIcon
-                      name={showPassword ? "EyeOff" : "Eye"}
-                      size={20}
-                      color={theme.colors.mutedForeground}
+                  {email.length > 0 && !isValidEmail(email) && (
+                    <Text className="text-destructive text-xs mt-1 ml-1">Invalid email format</Text>
+                  )}
+                </View>
+
+                <View>
+                  <Text className="mb-2 text-sm font-medium text-foreground">Password</Text>
+                  <View className="flex-row items-center rounded-xl border border-border bg-card px-4 py-3">
+                    <TextInput
+                      placeholder="Enter password"
+                      placeholderTextColor={theme.colors.mutedForeground}
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry={!showPassword}
+                      className="flex-1 text-foreground"
                     />
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
+                      <LucideIcon
+                        name={showPassword ? "EyeOff" : "Eye"}
+                        size={20}
+                        color={theme.colors.mutedForeground}
+                      />
+                    </Button>
+                  </View>
                 </View>
               </View>
-            </View>
 
-            <Button
-              variant="link"
-              className="self-end mt-2"
-              onPress={() => router.push("/auth/forgot-password")}
-            >
-              <Text className="text-sm">Forgot Password?</Text>
-            </Button>
-
-            <Button
-              className="mt-6 h-12"
-              onPress={handleEmailLogin}
-              disabled={!isLoginFormValid || !!loadingProvider}
-            >
-              {loadingProvider === "email" ? (
-                <ActivityIndicator color={theme.colors.primaryForeground} />
-              ) : (
-                <Text className="font-bold">Log In</Text>
-              )}
-            </Button>
-
-            <View className="flex-row items-center justify-center mt-6">
-              <Text className="text-muted-foreground">Don't have an account? </Text>
-              <Button variant="link" className="p-0" onPress={() => router.push("/auth/signup")}>
-                <Text className="font-bold">Sign Up</Text>
+              <Button
+                variant="link"
+                className="self-end mt-2"
+                onPress={() => router.push("/auth/forgot-password")}
+              >
+                <Text className="text-sm text-foreground">Forgot Password?</Text>
               </Button>
+
+              <Button
+                size="lg"
+                className="mt-6 w-full"
+                onPress={handleEmailLogin}
+                disabled={!isLoginFormValid || !!loadingProvider}
+              >
+                {loadingProvider === "email" ? (
+                  <ActivityIndicator color={theme.colors.primaryForeground} />
+                ) : (
+                  <Text className="font-bold">Log In</Text>
+                )}
+              </Button>
+
+              {errorMessage ? (
+                <View className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3">
+                  <Text className="text-destructive text-center text-sm font-medium">
+                    {errorMessage}
+                  </Text>
+                </View>
+              ) : null}
+
+              {successMessage ? (
+                <View className="mt-4 rounded-xl border border-success/30 bg-success/10 px-4 py-3">
+                  <Text className="text-success text-center text-sm font-medium">
+                    {successMessage}
+                  </Text>
+                </View>
+              ) : null}
+
+              <View className="flex-row items-center justify-center mt-6">
+                <Text className="text-muted-foreground">Don't have an account? </Text>
+                <Button variant="link" className="p-0" onPress={() => router.push("/auth/signup")}>
+                  <Text className="font-bold">Sign Up</Text>
+                </Button>
+              </View>
             </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
       <AuthErrorDialog
         open={!!errorDialog}
         onOpenChange={(open) => {
@@ -379,6 +366,6 @@ export default function LoginScreen() {
         message={errorDialog?.message ?? ""}
         actions={errorDialog?.actions ?? []}
       />
-    </SafeAreaView>
+    </>
   );
 }

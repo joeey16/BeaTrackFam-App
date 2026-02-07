@@ -53,9 +53,9 @@ export default function CheckoutScreen() {
   const primaryColor = "#4F46E5";
   const primaryForeground = "#FFFFFF";
   const shippingOptions: ShippingOption[] = [
-    { id: "standard", label: "Standard", amount: 5.99 },
-    { id: "expedited", label: "Expedited", amount: 10.99 },
-    { id: "premium", label: "Premium", amount: 20.99 },
+    { id: "standard", label: "Standard", amount: 6.99 },
+    { id: "expedited", label: "Expedited", amount: 16.99 },
+    { id: "premium", label: "Premium", amount: 29.99 },
   ];
   const { cartId, clearCart } = useCartContext();
   const { data: cart, isLoading } = useCart(cartId);
@@ -413,6 +413,8 @@ export default function CheckoutScreen() {
         merchantDisplayName: "BeaTrackFam Inc",
         customerId: customerId,
         customerEphemeralKeySecret: ephemeralKey,
+        allowsDelayedPaymentMethods: true,
+        returnURL: "beatrackfaminc://stripe-redirect",
       });
       if (initResult.error) {
         throw new Error(initResult.error.message || "Failed to initialize payment sheet");
@@ -622,6 +624,20 @@ export default function CheckoutScreen() {
             type: "fa5" as const,
             icon: "google-pay",
             color: "#1A73E8",
+          },
+          {
+            id: "shop-pay",
+            label: "Shop Pay",
+            type: "fa5" as const,
+            icon: "shopify",
+            color: "#5A31F4",
+          },
+          {
+            id: "paypal",
+            label: "PayPal",
+            type: "fa5" as const,
+            icon: "cc-paypal",
+            color: "#0070BA",
           },
           {
             id: "card",

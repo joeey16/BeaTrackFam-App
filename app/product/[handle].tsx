@@ -18,6 +18,7 @@ import { useWishlist } from "~/lib/contexts/WishlistContext";
 import { usePreferences } from "~/lib/contexts/PreferencesContext";
 import { useTheme } from "~/theming/ThemeProvider";
 import LucideIcon from "~/lib/icons/LucideIcon";
+import { StarRating } from "~/components/StarRating";
 import type { ShopifyProductVariant } from "~/lib/shopify/types";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -229,130 +230,42 @@ export default function ProductDetailScreen() {
             )}
           </View>
 
-          <View className="px-4 py-6">
-            {/* Title and Price */}
-            <View className="mb-2 flex-row items-start justify-between">
-              <View className="flex-1">
-                <Text className="text-h2 font-bold text-foreground">{product.title}</Text>
-              </View>
-              <Pressable
-                onPress={() => toggleWishlist(product.id)}
-                className="ml-3 h-12 w-12 items-center justify-center rounded-full bg-muted"
-              >
-                <LucideIcon
-                  name="Heart"
-                  size={24}
-                  color={isInWishlist(product.id) ? "#FF0000" : theme.colors.foreground}
-                  fill={isInWishlist(product.id) ? "#FF0000" : "none"}
-                />
-              </Pressable>
+          <View className="px-4 py-5">
+            {/* Title */}
+            <Text className="text-2xl font-bold text-foreground mb-2">{product.title}</Text>
+
+            {/* Rating - TODO: Fetch real reviews from review app integration */}
+            <View className="mb-5 pb-5 border-b border-border">
+              <StarRating rating={0} reviewCount={0} size={14} />
             </View>
-            <Text className="text-sm text-muted-foreground mb-4">{product.vendor}</Text>
-
-            {selectedVariant && (
-              <View className="mb-6">
-                {(() => {
-                  const compareAtPrice = selectedVariant.compareAtPrice;
-                  const isOnSale =
-                    compareAtPrice &&
-                    parseFloat(compareAtPrice.amount) > parseFloat(selectedVariant.price.amount);
-
-                  return (
-                    <>
-                      <View className="flex-row items-center gap-3">
-                        <Text
-                          className={`text-2xl font-bold ${
-                            isOnSale ? "text-destructive" : "text-primary"
-                          }`}
-                        >
-                          {formatPrice(
-                            selectedVariant.price.amount,
-                            selectedVariant.price.currencyCode,
-                          )}
-                        </Text>
-                        {isOnSale && (
-                          <View className="rounded-full bg-destructive px-2 py-1">
-                            <Text className="text-xs font-semibold text-destructive-foreground">
-                              On Sale
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                      {isOnSale && compareAtPrice && (
-                        <Text className="text-base text-muted-foreground line-through">
-                          {formatPrice(compareAtPrice.amount, compareAtPrice.currencyCode)}
-                        </Text>
-                      )}
-                    </>
-                  );
-                })()}
-              </View>
-            )}
 
             {/* Variant Options */}
             {product.options.map((option) => {
               if (option.values.length <= 1) return null;
 
-              // Check if this option matches user preference
-              const isPreferenceOption =
-                option.name.toLowerCase() === "size" ||
-                option.name.toLowerCase().includes("device") ||
-                option.name.toLowerCase().includes("model");
-
-              const preferenceValue =
-                option.name.toLowerCase() === "size"
-                  ? preferences.defaultSize
-                  : (option.name.toLowerCase().includes("device") ||
-                        option.name.toLowerCase().includes("model")) &&
-                      preferences.defaultDeviceModel
-                    ? preferences.defaultDeviceModel
-                    : null;
-
               return (
-                <View key={option.id} className="mb-6">
-                  <View className="mb-3 flex-row items-center justify-between">
-                    <Text className="text-base font-semibold text-foreground">
-                      {option.name}: {selectedOptions[option.name]}
-                    </Text>
-                    {isPreferenceOption && preferenceValue && (
-                      <View className="flex-row items-center rounded-full bg-primary/10 px-3 py-1">
-                        <LucideIcon name="User" size={12} color={theme.colors.primary} />
-                        <Text className="ml-1 text-xs font-medium text-primary">
-                          Your Preference
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <View className="flex-row flex-wrap">
+                <View key={option.id} className="mb-5">
+                  <Text className="text-base font-semibold text-foreground mb-3">
+                    {option.name}
+                  </Text>
+                  <View className="flex-row flex-wrap gap-2">
                     {option.values.map((value) => {
                       const isSelected = selectedOptions[option.name] === value;
-                      const isPreferred = preferenceValue === value;
                       return (
                         <Pressable
                           key={value}
                           onPress={() => handleOptionChange(option.name, value)}
-                          className={`mr-3 mb-3 rounded-xl border-2 px-6 py-3 ${
-                            isSelected ? "border-primary bg-primary/10" : "border-border bg-card"
+                          className={`rounded-lg px-5 py-3 ${
+                            isSelected ? "bg-primary" : "bg-card border border-border"
                           }`}
                         >
-                          <View className="flex-row items-center">
-                            <Text
-                              className={`text-sm font-medium ${
-                                isSelected ? "text-primary" : "text-foreground"
-                              }`}
-                            >
-                              {value}
-                            </Text>
-                            {isPreferred && !isSelected && (
-                              <LucideIcon
-                                name="Star"
-                                size={12}
-                                color={theme.colors.primary}
-                                fill={theme.colors.primary}
-                                style={{ marginLeft: 4 }}
-                              />
-                            )}
-                          </View>
+                          <Text
+                            className={`text-sm font-medium ${
+                              isSelected ? "text-primary-foreground" : "text-foreground"
+                            }`}
+                          >
+                            {value}
+                          </Text>
                         </Pressable>
                       );
                     })}
@@ -361,51 +274,25 @@ export default function ProductDetailScreen() {
               );
             })}
 
-            {/* Availability */}
-            {selectedVariant && (
-              <View className="mb-6 flex-row items-center">
-                <LucideIcon
-                  name={selectedVariant.availableForSale ? "CircleCheck" : "CircleX"}
-                  size={20}
-                  color={
-                    selectedVariant.availableForSale
-                      ? theme.colors.primary
-                      : theme.colors.destructive
-                  }
-                />
-                <Text
-                  className={`ml-2 text-sm ${
-                    selectedVariant.availableForSale ? "text-primary" : "text-destructive"
-                  }`}
-                >
-                  {selectedVariant.availableForSale
-                    ? `In Stock${selectedVariant.quantityAvailable > 0 ? ` (${selectedVariant.quantityAvailable} available)` : ""}`
-                    : "Out of Stock"}
-                </Text>
-              </View>
-            )}
-
             {/* Quantity Selector */}
             {selectedVariant?.availableForSale && (
-              <View className="mb-6">
-                <Text className="mb-3 text-base font-semibold text-foreground">Quantity</Text>
+              <View className="mb-5">
+                <Text className="text-base font-semibold text-foreground mb-3">Quantity</Text>
                 <View className="flex-row items-center">
                   <Pressable
                     onPress={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
-                    className={`h-12 w-12 items-center justify-center rounded-xl border-2 ${
-                      quantity <= 1 ? "border-muted bg-muted" : "border-primary bg-primary/10"
-                    }`}
+                    className="h-11 w-11 items-center justify-center rounded-lg border border-border bg-card"
                   >
                     <LucideIcon
                       name="Minus"
-                      size={20}
-                      color={quantity <= 1 ? theme.colors.mutedForeground : theme.colors.primary}
+                      size={18}
+                      color={quantity <= 1 ? theme.colors.mutedForeground : theme.colors.foreground}
                     />
                   </Pressable>
 
-                  <View className="mx-4 min-w-16 items-center">
-                    <Text className="text-2xl font-bold text-foreground">{quantity}</Text>
+                  <View className="mx-5 min-w-16 items-center">
+                    <Text className="text-xl font-semibold text-foreground">{quantity}</Text>
                   </View>
 
                   <Pressable
@@ -413,45 +300,39 @@ export default function ProductDetailScreen() {
                       const maxQty = selectedVariant.quantityAvailable || 99;
                       setQuantity(Math.min(maxQty, quantity + 1));
                     }}
-                    disabled={
-                      selectedVariant.quantityAvailable > 0 &&
-                      quantity >= selectedVariant.quantityAvailable
-                    }
-                    className={`h-12 w-12 items-center justify-center rounded-xl border-2 ${
-                      selectedVariant.quantityAvailable > 0 &&
-                      quantity >= selectedVariant.quantityAvailable
-                        ? "border-muted bg-muted"
-                        : "border-primary bg-primary/10"
-                    }`}
+                    className="h-11 w-11 items-center justify-center rounded-lg border border-border bg-card"
                   >
-                    <LucideIcon
-                      name="Plus"
-                      size={20}
-                      color={
-                        selectedVariant.quantityAvailable > 0 &&
-                        quantity >= selectedVariant.quantityAvailable
-                          ? theme.colors.mutedForeground
-                          : theme.colors.primary
-                      }
-                    />
+                    <LucideIcon name="Plus" size={18} color={theme.colors.foreground} />
                   </Pressable>
-
-                  {selectedVariant.quantityAvailable > 0 && (
-                    <Text className="ml-4 text-sm text-muted-foreground">
-                      Max: {selectedVariant.quantityAvailable}
-                    </Text>
-                  )}
                 </View>
               </View>
             )}
 
             {/* Description */}
-            <View className="mb-6">
-              <Text className="mb-2 text-lg font-semibold text-foreground">Description</Text>
-              <Text className="text-base leading-6 text-muted-foreground">
-                {product.description}
+            <View className="mb-5 pb-5 border-b border-border">
+              <Text className="mb-3 text-base font-semibold text-foreground">Product Details</Text>
+              <Text className="text-sm leading-6 text-muted-foreground">
+                {product.description || "No description available for this product."}
               </Text>
             </View>
+
+            {/* Stock Status */}
+            {selectedVariant && (
+              <View className="mb-5 flex-row items-center">
+                <View
+                  className={`h-2 w-2 rounded-full ${
+                    selectedVariant.availableForSale ? "bg-success" : "bg-destructive"
+                  }`}
+                />
+                <Text
+                  className={`ml-2 text-sm font-medium ${
+                    selectedVariant.availableForSale ? "text-success" : "text-destructive"
+                  }`}
+                >
+                  {selectedVariant.availableForSale ? "In Stock" : "Out of Stock"}
+                </Text>
+              </View>
+            )}
 
             {/* Related Products */}
             {relatedProducts.length > 0 && (
@@ -542,11 +423,52 @@ export default function ProductDetailScreen() {
           </View>
         </ScrollView>
 
-        {/* Add to Cart Button */}
+        {/* Bottom Section - Price & Add to Cart */}
         <View className="border-t border-border bg-background px-4 py-4">
+          {selectedVariant && (
+            <View className="flex-row items-center justify-between mb-3">
+              <View>
+                <Text className="text-xs text-muted-foreground mb-1">Total Price</Text>
+                {(() => {
+                  const compareAtPrice = selectedVariant.compareAtPrice;
+                  const isOnSale =
+                    compareAtPrice &&
+                    parseFloat(compareAtPrice.amount) > parseFloat(selectedVariant.price.amount);
+
+                  return (
+                    <View className="flex-row items-baseline gap-2">
+                      <Text className="text-2xl font-bold text-foreground">
+                        {formatPrice(
+                          selectedVariant.price.amount,
+                          selectedVariant.price.currencyCode,
+                        )}
+                      </Text>
+                      {isOnSale && compareAtPrice && (
+                        <Text className="text-sm text-muted-foreground line-through">
+                          {formatPrice(compareAtPrice.amount, compareAtPrice.currencyCode)}
+                        </Text>
+                      )}
+                    </View>
+                  );
+                })()}
+              </View>
+              <Pressable
+                onPress={() => toggleWishlist(product.id)}
+                className="h-12 w-12 items-center justify-center rounded-full border-2 border-border"
+              >
+                <LucideIcon
+                  name="Heart"
+                  size={22}
+                  color={isInWishlist(product.id) ? "#FF0000" : theme.colors.foreground}
+                  fill={isInWishlist(product.id) ? "#FF0000" : "none"}
+                />
+              </Pressable>
+            </View>
+          )}
           <Button
             onPress={handleAddToCart}
             disabled={!selectedVariant?.availableForSale || addToCart.isPending}
+            size="lg"
             className="w-full"
           >
             {addToCart.isPending ? (

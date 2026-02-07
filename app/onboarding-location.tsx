@@ -4,8 +4,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "~/components/ui/text";
 import { Button } from "~/components/ui/button";
 import { router, Stack } from "expo-router";
+import { useTheme } from "~/theming/ThemeProvider";
+import LucideIcon from "~/lib/icons/LucideIcon";
 
 export default function LocationPermissionScreen() {
+  const { theme } = useTheme();
   const [isRequesting, setIsRequesting] = React.useState(false);
   const [isNativeAvailable, setIsNativeAvailable] = React.useState(true);
 
@@ -77,10 +80,16 @@ export default function LocationPermissionScreen() {
         }}
       />
       <View className="flex-1 items-center justify-center px-8">
+        {/* Icon */}
+        <View
+          className="h-24 w-24 items-center justify-center rounded-full mb-6"
+          style={{ backgroundColor: theme.colors.primary }}
+        >
+          <LucideIcon name="MapPin" size={48} color={theme.colors.primaryForeground} />
+        </View>
+
         {/* Title */}
-        <Text className="mb-4 text-center text-3xl font-bold text-foreground">
-          Location Services
-        </Text>
+        <Text className="mb-4 text-center text-3xl font-bold text-foreground">Find Your Way</Text>
 
         {/* Description */}
         <Text className="mb-8 text-center text-base leading-6 text-muted-foreground">

@@ -33,55 +33,56 @@ function CartLineItem({ line, cartId }: { line: ShopifyCartLine; cartId: string 
   const compareAtPrice = variant.compareAtPrice;
   const isOnSale =
     !!compareAtPrice && parseFloat(compareAtPrice.amount) > parseFloat(variant.price.amount);
+
+  const lineTotal = parseFloat(variant.price.amount) * line.quantity;
+
   return (
-    <View className="mb-4 flex-row rounded-2xl bg-card p-4">
+    <View className="mb-3 flex-row rounded-2xl bg-card p-3 border border-border">
       {variant.image && (
-        <Image source={{ uri: variant.image.url }} className="h-24 w-24 rounded-xl" />
+        <Image
+          source={{ uri: variant.image.url }}
+          className="h-20 w-20 rounded-lg bg-muted"
+          resizeMode="cover"
+        />
       )}
-      <View className="ml-4 flex-1">
-        <Text className="text-base font-semibold text-foreground" numberOfLines={2}>
-          {productTitle}
-        </Text>
-        {variant.title !== "Default Title" && (
-          <Text className="mt-1 text-sm text-muted-foreground">{variant.title}</Text>
-        )}
-        <View className="mt-2 flex-row items-baseline gap-2">
-          <Text className={`text-base font-bold ${isOnSale ? "text-destructive" : "text-primary"}`}>
-            {formatPrice(variant.price.amount, variant.price.currencyCode)}
+      <View className="ml-3 flex-1">
+        <View className="flex-row items-start justify-between mb-1">
+          <Text className="text-sm font-semibold text-foreground flex-1" numberOfLines={2}>
+            {productTitle}
           </Text>
-          {isOnSale && compareAtPrice && (
-            <Text className="text-xs text-muted-foreground line-through">
-              {formatPrice(compareAtPrice.amount, compareAtPrice.currencyCode)}
-            </Text>
-          )}
+          <Pressable onPress={handleRemove} disabled={removeLine.isPending} className="ml-2">
+            <LucideIcon name="Trash2" size={18} color={theme.colors.mutedForeground} />
+          </Pressable>
         </View>
-        {isOnSale && (
-          <View className="mt-1 rounded-full bg-destructive px-2 py-0.5 self-start">
-            <Text className="text-[10px] font-semibold text-destructive-foreground">On Sale</Text>
-          </View>
+
+        {variant.title !== "Default Title" && (
+          <Text className="text-xs text-muted-foreground mb-2">{variant.title}</Text>
         )}
-        {/* Quantity Controls */}
-        <View className="mt-2 flex-row items-center justify-between">
-          <View className="flex-row items-center rounded-lg border border-border">
+
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center gap-2 bg-muted rounded-lg px-1 py-1">
             <Pressable
               onPress={() => handleUpdateQuantity(line.quantity - 1)}
-              className="px-3 py-1"
-              disabled={updateLine.isPending}
+              className="h-7 w-7 items-center justify-center"
+              disabled={updateLine.isPending || line.quantity <= 1}
             >
-              <LucideIcon name="Minus" size={16} color={theme.colors.foreground} />
+              <LucideIcon name="Minus" size={14} color={theme.colors.foreground} />
             </Pressable>
-            <Text className="px-3 text-foreground">{line.quantity}</Text>
+            <Text className="text-sm font-medium text-foreground min-w-6 text-center">
+              {line.quantity}
+            </Text>
             <Pressable
               onPress={() => handleUpdateQuantity(line.quantity + 1)}
-              className="px-3 py-1"
+              className="h-7 w-7 items-center justify-center"
               disabled={updateLine.isPending}
             >
-              <LucideIcon name="Plus" size={16} color={theme.colors.foreground} />
+              <LucideIcon name="Plus" size={14} color={theme.colors.foreground} />
             </Pressable>
           </View>
-          <Pressable onPress={handleRemove} disabled={removeLine.isPending}>
-            <LucideIcon name="Trash2" size={20} color={theme.colors.destructive} />
-          </Pressable>
+
+          <Text className="text-base font-bold text-foreground">
+            {formatPrice(lineTotal.toFixed(2), variant.price.currencyCode)}
+          </Text>
         </View>
       </View>
     </View>
@@ -136,9 +137,9 @@ export default function CartScreen() {
             <View className="border-t border-border bg-background px-4 py-4">
               {cart?.cost && (
                 <>
-                  <View className="mb-4 flex-row items-center justify-between">
-                    <Text className="text-base text-muted-foreground">Subtotal</Text>
-                    <Text className="text-base text-foreground">
+                  <View className="mb-3 flex-row items-center justify-between">
+                    <Text className="text-sm text-muted-foreground">Subtotal</Text>
+                    <Text className="text-sm font-medium text-foreground">
                       {formatPrice(
                         cart.cost.subtotalAmount.amount,
                         cart.cost.subtotalAmount.currencyCode,
@@ -146,9 +147,9 @@ export default function CartScreen() {
                     </Text>
                   </View>
                   {cart.cost.totalTaxAmount && (
-                    <View className="mb-4 flex-row items-center justify-between">
-                      <Text className="text-base text-muted-foreground">Tax</Text>
-                      <Text className="text-base text-foreground">
+                    <View className="mb-3 flex-row items-center justify-between">
+                      <Text className="text-sm text-muted-foreground">Tax</Text>
+                      <Text className="text-sm font-medium text-foreground">
                         {formatPrice(
                           cart.cost.totalTaxAmount.amount,
                           cart.cost.totalTaxAmount.currencyCode,
@@ -156,9 +157,9 @@ export default function CartScreen() {
                       </Text>
                     </View>
                   )}
-                  <View className="mb-4 flex-row items-center justify-between">
-                    <Text className="text-lg font-semibold text-foreground">Total</Text>
-                    <Text className="text-xl font-bold text-primary">
+                  <View className="mb-4 pt-3 border-t border-border flex-row items-center justify-between">
+                    <Text className="text-base font-semibold text-foreground">Total</Text>
+                    <Text className="text-xl font-bold text-foreground">
                       {formatPrice(
                         cart.cost.totalAmount.amount,
                         cart.cost.totalAmount.currencyCode,
@@ -167,7 +168,7 @@ export default function CartScreen() {
                   </View>
                 </>
               )}
-              <Button onPress={handleCheckout} className="w-full">
+              <Button onPress={handleCheckout} size="lg" className="w-full">
                 <Text>Proceed to Checkout</Text>
               </Button>
             </View>

@@ -156,7 +156,7 @@ export default function AddressesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
-      <Stack.Screen options={{ title: "Addresses" }} />
+      <Stack.Screen options={{ title: "Addresses", headerBackTitle: "Back" }} />
       <ScrollView className="flex-1 px-4 pt-4" showsVerticalScrollIndicator={false}>
         <Text className="text-h2 mb-4 font-bold text-foreground">Saved Addresses</Text>
 

@@ -126,7 +126,6 @@ app.post("/payments/init-payment-sheet", async (req, res) => {
       customer: customer.id,
       receipt_email: customerEmail,
       automatic_payment_methods: { enabled: true },
-      setup_future_usage: "on_session",
       metadata,
     });
 
@@ -192,10 +191,32 @@ app.post("/shopify/create-order", async (req, res) => {
     const normalizedBilling = normalizeAddress(billingAddress);
     const hasDiscount =
       discountCode && discountAmount && safeNumber(discountAmount) && safeNumber(discountAmount) > 0;
+    let customerId = null;
+    if (customerEmail && process.env.SHOPIFY_DOMAIN && process.env.SHOPIFY_ADMIN_TOKEN) {
+      try {
+        const customerResponse = await fetch(
+          `https://${process.env.SHOPIFY_DOMAIN}/admin/api/2024-10/customers/search.json?query=email:${encodeURIComponent(
+            customerEmail,
+          )}`,
+          {
+            headers: {
+              "X-Shopify-Access-Token": process.env.SHOPIFY_ADMIN_TOKEN || "",
+            },
+          },
+        );
+        const customerData = await customerResponse.json();
+        if (customerResponse.ok && Array.isArray(customerData.customers)) {
+          customerId = customerData.customers[0]?.id || null;
+        }
+      } catch (_error) {
+        customerId = null;
+      }
+    }
 
     const orderPayload = {
       order: {
         email: customerEmail,
+        customer: customerId ? { id: customerId } : undefined,
         line_items: normalizedLineItems,
         currency: currency || "USD",
         shipping_address: normalizedShipping,

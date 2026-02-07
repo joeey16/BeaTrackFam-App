@@ -147,6 +147,14 @@ export default function NotificationPermissionScreen() {
       <View className="flex-1 items-center justify-center px-8">
         {isFromSettings ? (
           <>
+            {/* Icon */}
+            <View
+              className="h-20 w-20 items-center justify-center rounded-full mb-4"
+              style={{ backgroundColor: theme.colors.primary }}
+            >
+              <LucideIcon name="Bell" size={40} color={theme.colors.primaryForeground} />
+            </View>
+
             {/* Title */}
             <Text className="mb-3 text-center text-3xl font-bold text-foreground">
               Notification Preferences
@@ -236,9 +244,17 @@ export default function NotificationPermissionScreen() {
           </>
         ) : (
           <>
+            {/* Icon */}
+            <View
+              className="h-24 w-24 items-center justify-center rounded-full mb-6"
+              style={{ backgroundColor: theme.colors.primary }}
+            >
+              <LucideIcon name="Bell" size={48} color={theme.colors.primaryForeground} />
+            </View>
+
             {/* Title */}
             <Text className="mb-4 text-center text-3xl font-bold text-foreground">
-              Order &amp; Drop Alerts
+              Stay in the Loop
             </Text>
 
             {/* Description */}

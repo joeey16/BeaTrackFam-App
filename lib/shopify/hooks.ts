@@ -186,12 +186,14 @@ export function useCustomerCreate() {
       password,
       firstName,
       lastName,
+      phone,
     }: {
       email: string;
       password: string;
       firstName?: string;
       lastName?: string;
-    }) => ShopifyAPI.customerCreate(email, password, firstName, lastName),
+      phone?: string;
+    }) => ShopifyAPI.customerCreate(email, password, firstName, lastName, phone),
   });
 }
 

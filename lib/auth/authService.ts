@@ -2,6 +2,8 @@ import * as Facebook from "expo-auth-session/providers/facebook";
 import * as Google from "expo-auth-session/providers/google";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useEffect, useState } from "react";
+import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type SocialUserInfo = {
   email: string;
@@ -9,14 +11,32 @@ type SocialUserInfo = {
   avatar?: string;
 };
 
+const extra = Constants.expoConfig?.extra ?? {};
+
 export const GOOGLE_CLIENT_IDS = {
-  ios: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "",
-  android: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? "",
-  web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "",
-  expo: process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID ?? "",
+  ios: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? extra.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "",
+  android:
+    process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ??
+    extra.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ??
+    "",
+  web: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? extra.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "",
+  expo:
+    process.env.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID ?? extra.EXPO_PUBLIC_GOOGLE_EXPO_CLIENT_ID ?? "",
 };
 
-export const FACEBOOK_APP_ID = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? "";
+export const FACEBOOK_APP_ID =
+  process.env.EXPO_PUBLIC_FACEBOOK_APP_ID ?? extra.EXPO_PUBLIC_FACEBOOK_APP_ID ?? "";
+
+const APPLE_EMAIL_KEY = "@beatrackfam:apple_email";
+
+async function getStoredAppleEmail(userId: string) {
+  const stored = await AsyncStorage.getItem(`${APPLE_EMAIL_KEY}:${userId}`);
+  return stored || null;
+}
+
+async function setStoredAppleEmail(userId: string, email: string) {
+  await AsyncStorage.setItem(`${APPLE_EMAIL_KEY}:${userId}`, email);
+}
 
 export function useGoogleAuth() {
   const [userInfo, setUserInfo] = useState<SocialUserInfo | null>(null);
@@ -94,8 +114,15 @@ export async function loginWithApple() {
     ],
   });
 
+  const storedEmail = credential.user ? await getStoredAppleEmail(credential.user) : null;
+  const resolvedEmail = credential.email ?? storedEmail ?? null;
+  if (credential.user && credential.email) {
+    await setStoredAppleEmail(credential.user, credential.email);
+  }
+
   return {
-    email: credential.email,
+    email: resolvedEmail,
     name: credential.fullName?.givenName,
+    userId: credential.user,
   };
 }

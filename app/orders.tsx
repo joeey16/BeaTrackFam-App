@@ -71,24 +71,39 @@ function OrderCard({ order }: { order: ShopifyOrder }) {
       {/* Items Preview */}
       <View className="mb-2">
         {order.lineItems.edges.slice(0, 2).map(({ node: item }) => (
-          <View key={item.title} className="mb-2 flex-row items-center">
-            {item.variant?.image && (
-              <Image
-                source={{ uri: item.variant.image.url }}
-                className="mr-3 h-12 w-12 rounded-lg"
-              />
-            )}
-            <View className="flex-1">
-              <Text className="text-sm text-foreground" numberOfLines={1}>
-                {item.title}
-              </Text>
-              {item.variant && (
-                <Text className="text-xs text-muted-foreground">
-                  Qty: {item.quantity} ×{" "}
-                  {formatPrice(item.variant.price.amount, item.variant.price.currencyCode)}
-                </Text>
+          <View key={item.title} className="mb-3">
+            <View className="mb-2 flex-row items-center">
+              {item.variant?.image && (
+                <Image
+                  source={{ uri: item.variant.image.url }}
+                  className="mr-3 h-12 w-12 rounded-lg"
+                />
               )}
+              <View className="flex-1">
+                <Text className="text-sm text-foreground" numberOfLines={1}>
+                  {item.title}
+                </Text>
+                {item.variant && (
+                  <Text className="text-xs text-muted-foreground">
+                    Qty: {item.quantity} ×{" "}
+                    {formatPrice(item.variant.price.amount, item.variant.price.currencyCode)}
+                  </Text>
+                )}
+              </View>
             </View>
+            {/* Leave Review Button */}
+            {order.fulfillmentStatus === "FULFILLED" && (
+              <Pressable
+                onPress={() => {
+                  // TODO: Navigate to review screen or open review modal
+                  console.log("Leave review for:", item.title);
+                }}
+                className="mt-1 flex-row items-center justify-center rounded-lg border border-border bg-background py-2"
+              >
+                <LucideIcon name="Star" size={14} color={theme.colors.primary} />
+                <Text className="ml-2 text-xs font-medium text-primary">Leave a Review</Text>
+              </Pressable>
+            )}
           </View>
         ))}
         {order.lineItems.edges.length > 2 && (

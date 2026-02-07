@@ -4,6 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { Text } from "~/components/ui/text";
 import { Button } from "~/components/ui/button";
+import { useTheme } from "~/theming/ThemeProvider";
+import LucideIcon from "~/lib/icons/LucideIcon";
 
 const styles = {
   container: "flex-1 bg-background",
@@ -40,6 +42,7 @@ function getStatusLabel(status: string) {
 export default function AppTrackingScreen() {
   const { source } = useLocalSearchParams<{ source?: string }>();
   const isFromSettings = source === "settings";
+  const { theme } = useTheme();
 
   React.useEffect(() => {
     if (Platform.OS !== "ios") {
@@ -109,7 +112,14 @@ export default function AppTrackingScreen() {
       <Stack.Screen options={{ title: "App Tracking" }} />
 
       <View className={styles.content}>
-        <Text className={styles.title}>App Tracking Transparency</Text>
+        <View
+          className="h-24 w-24 items-center justify-center rounded-full mb-6 self-center"
+          style={{ backgroundColor: theme.colors.primary }}
+        >
+          <LucideIcon name="Shield" size={48} color={theme.colors.primaryForeground} />
+        </View>
+
+        <Text className={styles.title}>Your Privacy Matters</Text>
         <Text className={styles.description}>{trackingPrompt}</Text>
 
         <View className={styles.statusCard}>

@@ -62,9 +62,9 @@ export default function CheckoutScreen() {
   const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
 
   const shippingOptions: ShippingOption[] = [
-    { id: "standard", label: "Standard", amount: 5.99 },
-    { id: "expedited", label: "Expedited", amount: 10.99 },
-    { id: "premium", label: "Premium", amount: 20.99 },
+    { id: "standard", label: "Standard", amount: 6.99 },
+    { id: "expedited", label: "Expedited", amount: 16.99 },
+    { id: "premium", label: "Premium", amount: 29.99 },
   ];
 
   const { cartId, clearCart } = useCartContext();

@@ -53,7 +53,6 @@ async function shopifyFetch<T>(query: string, variables: Record<string, unknown>
   if (
     SHOPIFY_DOMAIN.includes("YOUR_") ||
     STOREFRONT_ACCESS_TOKEN.includes("YOUR_") ||
-    SHOPIFY_DOMAIN.includes("DOMAIN") ||
     STOREFRONT_ACCESS_TOKEN.includes("TOKEN")
   ) {
     throw new Error(
@@ -63,6 +62,7 @@ async function shopifyFetch<T>(query: string, variables: Record<string, unknown>
 
   // Try each API version until one works
   let lastError: Error | null = null;
+  let firstSuccessfulVersion: string | null = null;
 
   for (const version of API_VERSIONS) {
     const apiUrl = `https://${SHOPIFY_DOMAIN}/api/${version}/graphql.json`;
@@ -82,25 +82,45 @@ async function shopifyFetch<T>(query: string, variables: Record<string, unknown>
         lastError = new Error(
           `API ${version} failed (${response.status}): ${response.statusText}. ${errorText}`,
         );
+        console.log(`⚠️ Shopify API ${version} HTTP error:`, response.status, errorText);
         continue; // Try next version
       }
 
       const json: GraphQLResponse<T> = await response.json();
 
       if (json.errors) {
-        lastError = new Error(`GraphQL errors: ${json.errors.map((e) => e.message).join(", ")}`);
+        const errorMessage = json.errors.map((e) => e.message).join(", ");
+        lastError = new Error(errorMessage);
+
+        // Log the actual GraphQL error for debugging
+        console.log(`⚠️ Shopify API ${version} GraphQL error:`, errorMessage);
+
+        // If this is the first version that connected successfully (no HTTP error),
+        // and we got a GraphQL error, it's likely a real validation error, not an API version issue
+        if (!firstSuccessfulVersion) {
+          firstSuccessfulVersion = version;
+          // Don't continue - throw the actual error message
+          throw lastError;
+        }
         continue; // Try next version
       }
 
       if (!json.data) {
         lastError = new Error("No data returned from API");
+        console.log(`⚠️ Shopify API ${version} no data returned`);
         continue;
       }
 
       // Success! Log which version worked
-      console.log(`✅ Shopify API ${version} working`);
+      if (!firstSuccessfulVersion) {
+        console.log(`✅ Shopify API ${version} working`);
+      }
       return json.data;
     } catch (error) {
+      // If this is an error we threw above (GraphQL validation error), re-throw it
+      if (error === lastError && firstSuccessfulVersion) {
+        throw error;
+      }
       lastError = error as Error;
       continue;
     }
@@ -782,6 +802,7 @@ export async function customerCreate(
   password: string,
   firstName?: string,
   lastName?: string,
+  phone?: string,
 ): Promise<ShopifyCustomerAccessToken> {
   const mutation = `
     mutation CustomerCreate($input: CustomerCreateInput!) {
@@ -804,7 +825,7 @@ export async function customerCreate(
       customerUserErrors: Array<{ message: string }>;
     };
   }>(mutation, {
-    input: { email, password, firstName, lastName },
+    input: { email, password, firstName, lastName, phone },
   });
 
   if (data.customerCreate.customerUserErrors.length > 0) {

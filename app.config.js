@@ -3,7 +3,7 @@ const facebookAppId = process.env.EXPO_PUBLIC_FACEBOOK_APP_ID;
 module.exports = {
   name: "BeaTrackFam Inc",
   slug: "beatrackfaminc",
-  version: "1.4.5",
+  version: "3.0.2",
   owner: "joeey16",
   scheme: "beatrackfaminc",
 
@@ -44,7 +44,6 @@ module.exports = {
         headOrigin: "https://5b024a24a2.sandbox.draftbit.dev:5100",
       },
     ],
-
     ["./plugins/draftbit-auto-launch-url-plugin"],
   ],
 
@@ -82,7 +81,7 @@ module.exports = {
 
   ios: {
     supportsTablet: true,
-    buildNumber: "145",
+    buildNumber: "302",
     bundleIdentifier: "com.beatrackfaminc",
     usesAppleSignIn: true,
     requireFullScreen: true,
@@ -126,7 +125,7 @@ module.exports = {
       backgroundColor: "#ffffff",
     },
     package: "com.beatrackfaminc",
-    versionCode: 145,
+    versionCode: 302,
     permissions: [
       "INTERNET",
       "ACCESS_NETWORK_STATE",

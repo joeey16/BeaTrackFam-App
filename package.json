@@ -109,5 +109,8 @@
     "*.{ts,tsx,mjs,js,jsx,css,yml,json,md}": [
       "prettier --write"
     ]
+  },
+  "resolutions": {
+    "metro-file-map@npm:0.82.5": "patch:metro-file-map@npm%3A0.82.5#~/.yarn/patches/metro-file-map-npm-0.82.5-a3cd6c98ac.patch"
   }
 }
